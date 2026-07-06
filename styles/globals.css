@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f6f3ec;
+  color: #1b1b18;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid #c6603c;
+  outline-offset: 3px;
+}
+
+/* sprocket-hole rule used along the top nav, echoing a film strip edge */
+.sprocket-rule {
+  background-image: radial-gradient(circle, #1b1b18 1.5px, transparent 1.6px);
+  background-size: 14px 100%;
+  background-repeat: repeat-x;
+  height: 3px;
+  opacity: 0.35;
+}
+
+.journal-body p {
+  margin-bottom: 1.25em;
+}
+
