@@ -25,15 +25,6 @@ body {
   outline-offset: 3px;
 }
 
-/* sprocket-hole rule used along the top nav, echoing a film strip edge */
-.sprocket-rule {
-  background-image: radial-gradient(circle, #1b1b18 1.5px, transparent 1.6px);
-  background-size: 14px 100%;
-  background-repeat: repeat-x;
-  height: 3px;
-  opacity: 0.35;
-}
-
 .journal-body p {
   margin-bottom: 1.25em;
 }

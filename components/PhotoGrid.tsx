@@ -9,26 +9,23 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px bg-ink/10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         {photos.map((photo) => (
           <button
             key={photo.id}
             onClick={() => setActive(photo)}
-            className="group relative aspect-[4/5] bg-ink overflow-hidden focus-ring text-left"
+            className="group relative aspect-[4/5] bg-ink/5 overflow-hidden focus-ring text-left"
             aria-label={`Open photo: ${photo.alt}, ${photo.city}`}
           >
             <Image
               src={photo.src}
               alt={photo.alt}
               fill
-              sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover opacity-90 transition duration-500 group-hover:opacity-100 group-hover:scale-[1.03]"
+              sizes="(max-width: 768px) 100vw, 50vw"
+              className="object-cover transition duration-500 group-hover:scale-[1.02]"
             />
-            <div className="absolute inset-x-0 bottom-0 p-2.5 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-t from-ink/80 to-transparent">
-              <p className="font-mono text-[10px] tracking-widest2 uppercase text-paper">
-                {photo.roll.toUpperCase()} · {String(photo.frame).padStart(2, "0")}
-              </p>
-              <p className="font-mono text-[11px] text-paper/80">
+            <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-t from-ink/70 to-transparent">
+              <p className="font-body text-sm text-paper">
                 {photo.city}, {photo.country}
               </p>
             </div>
@@ -44,7 +41,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
           onClick={() => setActive(null)}
         >
           <button
-            className="absolute top-6 right-6 text-paper font-mono text-xs tracking-widest2 uppercase focus-ring"
+            className="absolute top-6 right-6 text-paper font-body text-sm focus-ring"
             onClick={() => setActive(null)}
             aria-label="Close"
           >
@@ -63,11 +60,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
                 className="object-contain"
               />
             </div>
-            <figcaption className="mt-4 font-mono text-xs tracking-widest2 uppercase text-paper/70 flex flex-wrap gap-x-4 gap-y-1">
-              <span>
-                {active.roll.toUpperCase()} · FRAME{" "}
-                {String(active.frame).padStart(2, "0")}
-              </span>
+            <figcaption className="mt-4 font-body text-sm text-paper/70 flex flex-wrap gap-x-4 gap-y-1">
               <span>
                 {active.city}, {active.country}
               </span>

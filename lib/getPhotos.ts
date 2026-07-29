@@ -6,7 +6,7 @@ export async function getPhotos(): Promise<Photo[]> {
 
   const { data, error } = await supabase
     .from("photos")
-    .select("id, src, alt, city, country, date, roll, frame, lat, lng")
+    .select("id, src, alt, city, country, date, roll, frame, lat, lng, featured")
     .order("date", { ascending: false });
 
   if (error || !data) {
@@ -15,6 +15,14 @@ export async function getPhotos(): Promise<Photo[]> {
   }
 
   return data as Photo[];
+}
+
+// Portfolio shows your curated highlights. If you haven't marked anything
+// `featured` yet (in data/photos.ts or the Supabase `featured` column),
+// it falls back to showing everything, so the page is never empty.
+export function getPortfolioPhotos(photos: Photo[]): Photo[] {
+  const featured = photos.filter((p) => p.featured);
+  return featured.length > 0 ? featured : photos;
 }
 
 export type RollLocation = {
@@ -26,8 +34,9 @@ export type RollLocation = {
   count: number;
 };
 
-// Collapses photos into one map pin per roll (trip), using the first photo
-// in each roll that has coordinates.
+// Collapses photos into one map location per roll (trip), using the first
+// photo in each roll that has coordinates. `count` is used by the heatmap
+// to weight busier rolls more heavily.
 export function getRollLocations(photos: Photo[]): RollLocation[] {
   const byRoll = new Map<string, RollLocation>();
 

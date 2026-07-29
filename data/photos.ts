@@ -9,6 +9,7 @@ export type Photo = {
   frame: number; // position within the roll
   lat?: number; // used to plot the roll on the map
   lng?: number;
+  featured?: boolean; // shows up on /portfolio when true
 };
 
 // Replace src with your own images once you've dropped them in /public/photos
@@ -25,6 +26,7 @@ export const photos: Photo[] = [
     frame: 1,
     lat: 35.0116,
     lng: 135.7681,
+    featured: true,
   },
   {
     id: "p2",
@@ -49,6 +51,7 @@ export const photos: Photo[] = [
     frame: 1,
     lat: 52.52,
     lng: 13.405,
+    featured: true,
   },
   {
     id: "p4",
@@ -73,6 +76,7 @@ export const photos: Photo[] = [
     frame: 1,
     lat: 37.7749,
     lng: -122.4194,
+    featured: true,
   },
   {
     id: "p6",

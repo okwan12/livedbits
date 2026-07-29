@@ -5,6 +5,9 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { RollLocation } from "@/lib/getPhotos";
 
+// Renders one heat "point" per photo (not per roll), so rolls with more
+// frames naturally read as hotter spots on the map — closer to a real
+// travel-density heatmap than one pin per trip.
 export default function LocationMap({
   locations,
 }: {
@@ -27,30 +30,67 @@ export default function LocationMap({
       attributionControl: false,
     });
     mapRef.current = map;
-
     map.addControl(new mapboxgl.AttributionControl({ compact: true }));
 
-    locations.forEach((loc) => {
-      const el = document.createElement("div");
-      el.className = "map-pin";
-      el.style.width = "12px";
-      el.style.height = "12px";
-      el.style.borderRadius = "50%";
-      el.style.background = "#C6603C";
-      el.style.border = "2px solid #F6F3EC";
-      el.style.boxShadow = "0 0 0 2px rgba(27,27,24,0.15)";
-      el.style.cursor = "pointer";
+    map.on("load", () => {
+      // Expand each roll into `count` individual points so denser rolls
+      // (more frames) contribute more heat, then feed that into a single
+      // GeoJSON source.
+      const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
+      locations.forEach((loc) => {
+        for (let i = 0; i < loc.count; i++) {
+          features.push({
+            type: "Feature",
+            geometry: { type: "Point", coordinates: [loc.lng, loc.lat] },
+            properties: { city: loc.city, country: loc.country },
+          });
+        }
+      });
 
-      const popup = new mapboxgl.Popup({ offset: 14, closeButton: false }).setHTML(
-        `<div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;">
-           ${loc.city}, ${loc.country}<br/>${loc.count} frame${loc.count > 1 ? "s" : ""}
-         </div>`
-      );
+      map.addSource("photo-points", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features },
+      });
 
-      new mapboxgl.Marker({ element: el })
-        .setLngLat([loc.lng, loc.lat])
-        .setPopup(popup)
-        .addTo(map);
+      map.addLayer({
+        id: "photo-heat",
+        type: "heatmap",
+        source: "photo-points",
+        maxzoom: 9,
+        paint: {
+          "heatmap-weight": 1,
+          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+          "heatmap-color": [
+            "interpolate",
+            ["linear"],
+            ["heatmap-density"],
+            0, "rgba(246,243,236,0)",
+            0.2, "#F0D9C4",
+            0.4, "#E2AE8A",
+            0.6, "#C6603C",
+            0.8, "#A8482C",
+            1, "#6B2A18",
+          ],
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 0, 10, 9, 30],
+          "heatmap-opacity": 0.85,
+        },
+      });
+
+      // Once zoomed in past maxzoom, fall back to visible dots so the
+      // heatmap doesn't just vanish on close-up views.
+      map.addLayer({
+        id: "photo-points-visible",
+        type: "circle",
+        source: "photo-points",
+        minzoom: 7,
+        paint: {
+          "circle-radius": 6,
+          "circle-color": "#C6603C",
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#F6F3EC",
+          "circle-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0, 9, 1],
+        },
+      });
     });
 
     return () => {
@@ -73,7 +113,7 @@ export default function LocationMap({
       ref={containerRef}
       className="aspect-[16/7] w-full"
       role="img"
-      aria-label="Map of places photographed"
+      aria-label="Heatmap of places photographed"
     />
   );
 }
