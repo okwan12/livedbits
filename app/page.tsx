@@ -1,4 +1,5 @@
 import PhotoGrid from "@/components/PhotoGrid";
+import CheckInMap from "@/components/CheckInMap";
 import { getPhotos } from "@/lib/getPhotos";
 
 export const revalidate = 60; // re-check Supabase for new photos every 60s
@@ -17,6 +18,13 @@ export default async function HomePage() {
         <p className="mt-5 font-body text-lg md:text-xl text-ink/70 leading-relaxed">
         Welcome to my world.
         </p>
+      </section>
+
+      <section className="max-w-4xl mx-auto px-6 pb-24">
+        <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
+          Check-ins
+        </h2>
+        <CheckInMap />
       </section>
 
       <section className="max-w-4xl mx-auto px-6 pb-24">
