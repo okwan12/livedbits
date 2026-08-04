@@ -7,17 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        paper: '#F6F3EC',
-        ink: '#1B1B18',
+        paper: '#FFFFFF',
+        ink: '#000000',
         rust: '#C6603C',
         sage: '#6B7A64',
         gold: '#C9A15A',
         film: '#94A08C',
       },
       fontFamily: {
-        display: ['var(--font-display)'],
-        body: ['var(--font-body)'],
-        mono: ['var(--font-mono)'],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        body: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-inter)', 'ui-monospace', 'monospace'],
       },
       letterSpacing: {
         widest2: '0.28em',

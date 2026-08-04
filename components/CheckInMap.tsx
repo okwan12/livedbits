@@ -76,7 +76,11 @@ type PopupInfo = {
   category: string;
 };
 
-export default function CheckInMap() {
+export default function CheckInMap({
+  className = "h-64 md:h-80 w-full overflow-hidden rounded-2xl",
+}: {
+  className?: string;
+}) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef>(null);
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
@@ -122,7 +126,7 @@ export default function CheckInMap() {
   if (!token) return null;
 
   return (
-    <div className="h-64 md:h-80 w-full overflow-hidden rounded-2xl">
+    <div className={className}>
       <Map
         ref={mapRef}
         mapboxAccessToken={token}

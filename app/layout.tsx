@@ -1,23 +1,12 @@
 
 import type { Metadata } from "next";
-import { Big_Shoulders_Display, Lora, IBM_Plex_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import Nav from "@/components/Nav";
 
-const display = Big_Shoulders_Display({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["600", "700"],
-});
-const body = Lora({
-  subsets: ["latin"],
-  variable: "--font-body",
-  weight: ["400", "500"],
-});
-const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "500"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -31,10 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${display.variable} ${body.variable} ${mono.variable} font-body`}
-      >
+    <html lang="en" className={inter.variable}>
+      <body className="font-sans">
         <Nav />
         <main>{children}</main>
         <footer className="border-t border-ink/10 mt-24">

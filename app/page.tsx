@@ -20,38 +20,95 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="max-w-4xl mx-auto px-6 pb-24">
-        <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
-          Check-ins
-        </h2>
-        <CheckInMap />
+      <section className="max-w-6xl mx-auto px-6 pb-24">
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2">
+            <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
+              Stops
+            </h2>
+            <CheckInMap className="h-72 md:h-[440px] w-full overflow-hidden rounded-2xl" />
+          </div>
+
+          <div className="md:col-span-1">
+            <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
+              Currently...
+            </h2>
+            {/* TODO: replace the placeholder numbers and lines below with your
+                own. Keep them short and specific; delete any row that doesn't
+                apply to you. */}
+            <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-6 md:h-[440px] overflow-y-auto font-body">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
+                    Based in
+                  </p>
+                  <p className="text-sm text-ink/70">New Jersey</p>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
+                    Listening to
+                  </p>
+                  {/* TODO: a few tracks or artists, one per line */}
+                  <div className="space-y-1 text-sm text-ink/70">
+                    <p>—</p>
+                    <p>—</p>
+                    <p>—</p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
+                    into
+                  </p>
+                  {/* TODO: a sentence on what you're up to right now */}
+                  <p className="text-sm text-ink/70 leading-relaxed">—</p>
+                </div>
+
+                <div className="h-px bg-ink/10" />
+
+                <div className="space-y-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-2xl text-ink">
+                      {/* TODO */}—
+                    </span>
+                    <span className="text-sm text-ink/60">countries visited</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-2xl text-ink">
+                      {/* TODO */}—
+                    </span>
+                    <span className="text-sm text-ink/60">cities explored</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-2xl text-ink">
+                      {/* TODO */}—
+                    </span>
+                    <span className="text-sm text-ink/60">total stops</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="max-w-4xl mx-auto px-6 pb-24">
         <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
-          Photography
+          Cleaning out my Camera Roll
         </h2>
         <PhotoGrid photos={gridPhotos} />
       </section>
 
       <section className="max-w-2xl mx-auto px-6 pb-28">
         <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
-          Interests
+          Quote of the Day
         </h2>
         {/* TODO: rewrite these in your own words — grounded, first person, no
             filler. Add or remove blurbs as you like. */}
         <div className="space-y-6 font-body text-lg text-ink/80 leading-relaxed">
           <p>
-            Most of what's here started with leaving. A semester in Berlin
-            turned into a habit of finding reasons to be somewhere unfamiliar.
-          </p>
-          <p>
-            I shoot mostly on film. The slowness suits me — a roll makes you
-            wait, and choose.
-          </p>
-          <p>
-            {/* TODO: make this line yours. */}
-            Afrobeats is usually what's playing while I edit.
+          "So maybe our grip on reality should be a little lighter, too, enabling us to see what is in front of us rather than only what we think we see." - Carol Bove
           </p>
         </div>
       </section>
