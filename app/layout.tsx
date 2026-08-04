@@ -25,7 +25,7 @@ export default function RootLayout({
         <Nav />
         <main>{children}</main>
         <footer className="border-t border-ink/10 mt-24">
-          <div className="max-w-4xl mx-auto px-6 py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="px-8 py-12 flex flex-col md:flex-row md:items-center md:justify-between gap-1">
             <p className="font-body text-sm text-ink/60">
               © {new Date().getFullYear()} livedbits
             </p>
