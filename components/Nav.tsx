@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Nav() {
   return (
     <header className="sticky top-0 z-40 bg-paper/95 backdrop-blur-sm">
-      <div className="max-w-4xl mx-auto flex items-center justify-between px-6 py-5">
+      <div className="flex items-center justify-between px-8 py-5">
         <Link
           href="/"
           className="font-display text-xl tracking-tight text-ink focus-ring"
