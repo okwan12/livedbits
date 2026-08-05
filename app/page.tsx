@@ -7,10 +7,6 @@ export const revalidate = 60; // re-check Supabase for new photos/places every 6
 
 export default async function HomePage() {
   const [photos, places] = await Promise.all([getPhotos(), getPlaces()]);
-  // Show a curated selection on the landing page; fall back to everything
-  // if nothing has been marked featured yet.
-  const featured = photos.filter((p) => p.featured);
-  const gridPhotos = featured.length > 0 ? featured : photos;
 
   return (
     <div>
@@ -97,11 +93,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-6 pb-24">
+      <section className="max-w-6xl mx-auto px-6 pb-24">
         <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
           Cleaning out my Camera Roll
         </h2>
-        <PhotoGrid photos={gridPhotos} />
+        <PhotoGrid photos={photos.slice(0, 6)} />
       </section>
 
       <section className="max-w-2xl mx-auto px-6 pb-28">

@@ -9,7 +9,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {photos.map((photo) => (
           <button
             key={photo.id}
@@ -21,7 +21,7 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
               src={photo.src}
               alt={photo.alt}
               fill
-              sizes="(max-width: 768px) 100vw, 50vw"
+              sizes="(max-width: 768px) 50vw, 33vw"
               className="object-cover transition duration-500 group-hover:scale-[1.02]"
             />
             <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-t from-ink/70 to-transparent">
