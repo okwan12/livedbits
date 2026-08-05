@@ -10,7 +10,7 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="max-w-2xl mx-auto px-6 pt-24 md:pt-32 pb-16">
+      <section className="max-w-2xl mx-auto px-6 pt-8 md:pt-12 pb-16">
         {/* TODO: confirm the name and one-line identity in your own words. */}
         <p className="mt-5 font-body text-lg md:text-xl text-ink/70 leading-relaxed">
         Welcome to my world.
