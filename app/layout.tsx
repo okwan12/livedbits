@@ -32,7 +32,7 @@ export default function RootLayout({
             {/* TODO: replace these with your real profile URLs and email. */}
             <nav className="flex gap-6 font-body text-sm text-ink/70">
               <a
-                href="https://www.linkedin.com/in/your-handle"
+                href="https://www.linkedin.com/in/oliviakwan1201"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-rust focus-ring"
@@ -40,7 +40,7 @@ export default function RootLayout({
                 LinkedIn
               </a>
               <a
-                href="https://www.instagram.com/your-handle"
+                href="https://www.instagram.com/livedbits"
                 target="_blank"
                 rel="noreferrer"
                 className="hover:text-rust focus-ring"
@@ -48,7 +48,7 @@ export default function RootLayout({
                 Instagram
               </a>
               <a
-                href="mailto:you@yourdomain.com"
+                href="mailto:heyoliviak@gmail.com"
                 className="hover:text-rust focus-ring"
               >
                 Email

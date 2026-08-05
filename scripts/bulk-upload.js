@@ -63,7 +63,7 @@ async function main() {
   let failed = 0;
 
   for (const row of rows) {
-    const { filename, city, country, date, roll, frame, lat, lng, alt } = row;
+    const { filename, city, country, date, roll, frame, alt, place_id } = row;
 
     if (!filename || !city || !country || !date || !roll || !frame) {
       console.warn(`⚠ Skipping row, missing a required field: ${JSON.stringify(row)}`);
@@ -105,8 +105,8 @@ async function main() {
         date,
         roll,
         frame: Number(frame),
-        lat: lat ? Number(lat) : null,
-        lng: lng ? Number(lng) : null,
+        // Optional link to a row in `places`. Leave blank for standalone gallery photos.
+        place_id: place_id || null,
       });
 
       if (insertError) throw insertError;

@@ -10,8 +10,8 @@ lots of whitespace, photography as the hero, minimal UI. Match that restraint.
 
 ## Stack
 - Next.js (App Router) + TypeScript
-- Supabase — stores the photos and their metadata
-- Mapbox — map of saved places (likescoffee-style places view)
+- Supabase — stores photos (`photos` table) and map locations (`places` table)
+- Mapbox — clustered map of places from the `places` table
 - Tailwind CSS for styling
 - Deploys to Vercel (auto-deploy on push to main)
 

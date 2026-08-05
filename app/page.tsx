@@ -1,11 +1,12 @@
 import PhotoGrid from "@/components/PhotoGrid";
 import CheckInMap from "@/components/CheckInMap";
 import { getPhotos } from "@/lib/getPhotos";
+import { getPlaces } from "@/lib/getPlaces";
 
-export const revalidate = 60; // re-check Supabase for new photos every 60s
+export const revalidate = 60; // re-check Supabase for new photos/places every 60s
 
 export default async function HomePage() {
-  const photos = await getPhotos();
+  const [photos, places] = await Promise.all([getPhotos(), getPlaces()]);
   // Show a curated selection on the landing page; fall back to everything
   // if nothing has been marked featured yet.
   const featured = photos.filter((p) => p.featured);
@@ -26,7 +27,10 @@ export default async function HomePage() {
             <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
               Stops
             </h2>
-            <CheckInMap className="h-72 md:h-[440px] w-full overflow-hidden rounded-2xl" />
+            <CheckInMap
+              places={places}
+              className="h-72 md:h-[440px] w-full overflow-hidden rounded-2xl"
+            />
           </div>
 
           <div className="md:col-span-1">

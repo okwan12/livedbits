@@ -32,8 +32,8 @@ the Supabase dashboard.
    | `date` | `YYYY-MM-DD` |
    | `roll` | a slug grouping photos from the same trip, e.g. `kyoto-spring` — use the same roll name for every photo from that trip |
    | `frame` | that photo's position within the roll (1, 2, 3...) |
-   | `lat` / `lng` | coordinates for the map pin (optional — look up "[city] coordinates" if you don't know them) |
    | `alt` | a short description, for accessibility and the lightbox caption |
+   | `place_id` | optional UUID of a row in the `places` table (leave blank for standalone gallery photos) |
 
 4. Run:
    ```

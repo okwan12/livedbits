@@ -7,9 +7,8 @@ export type Photo = {
   date: string; // YYYY-MM-DD
   roll: string; // groups photos into a "contact sheet" roll, e.g. a trip
   frame: number; // position within the roll
-  lat?: number; // used to plot the roll on the map
-  lng?: number;
-  featured?: boolean; // shows up on /portfolio when true
+  featured?: boolean; // shows up on homepage / portfolio when true
+  place_id?: string | null; // optional link to places.id
 };
 
 // Replace src with your own images once you've dropped them in /public/photos
@@ -24,8 +23,6 @@ export const photos: Photo[] = [
     date: "2026-03-14",
     roll: "kyoto-spring",
     frame: 1,
-    lat: 35.0116,
-    lng: 135.7681,
     featured: true,
   },
   {
@@ -37,8 +34,6 @@ export const photos: Photo[] = [
     date: "2026-03-15",
     roll: "kyoto-spring",
     frame: 2,
-    lat: 35.0116,
-    lng: 135.7681,
   },
   {
     id: "p3",
@@ -49,8 +44,6 @@ export const photos: Photo[] = [
     date: "2025-10-02",
     roll: "berlin-fall",
     frame: 1,
-    lat: 52.52,
-    lng: 13.405,
     featured: true,
   },
   {
@@ -62,8 +55,6 @@ export const photos: Photo[] = [
     date: "2025-09-20",
     roll: "amsterdam-canals",
     frame: 1,
-    lat: 52.3676,
-    lng: 4.9041,
   },
   {
     id: "p5",
@@ -74,8 +65,6 @@ export const photos: Photo[] = [
     date: "2026-05-11",
     roll: "sf-goodbye",
     frame: 1,
-    lat: 37.7749,
-    lng: -122.4194,
     featured: true,
   },
   {
@@ -87,7 +76,5 @@ export const photos: Photo[] = [
     date: "2026-03-18",
     roll: "kyoto-spring",
     frame: 3,
-    lat: 35.0116,
-    lng: 135.7681,
   },
 ];

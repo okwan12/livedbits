@@ -29,8 +29,8 @@ Then open http://localhost:3000.
    full-res files — Cloudinary, S3, etc.)
 2. Edit `data/photos.ts` — each photo needs a `src`, `alt`, `city`,
    `country`, `date`, `roll` (a slug grouping photos from the same trip),
-   `frame` (its position in that roll), and optionally `lat`/`lng` if you
-   want it to show up on the map.
+   and `frame` (its position in that roll). Map pins live in the separate
+   `places` table — photos can optionally set `place_id` to link to one.
 
 **Option B — Supabase (recommended once you have more than ~30 photos):**
 See the "Connect Supabase" section below. The site automatically uses
@@ -67,10 +67,11 @@ meantime.
 2. Go to your **Account page** — there's a default public token already
    generated for you. Copy it.
 3. Add it to `.env.local` as `NEXT_PUBLIC_MAPBOX_TOKEN`.
-4. Restart `npm run dev`. The map on the home page plots one pin per
-   "roll," using the `lat`/`lng` on each photo.
+4. Restart `npm run dev`. The map on the home page plots pins from the
+   `places` table (falling back to sample data in `data/places.ts` if
+   the table is empty).
 5. If you skip this step, the site still works fine — that section just
-   shows a placeholder instead of the map.
+   renders nothing until a token is set.
 
 ## Add a journal entry
 

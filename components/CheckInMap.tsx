@@ -11,14 +11,18 @@ import Map, {
 } from "react-map-gl";
 import type { GeoJSONSource } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { checkinsToGeoJSON, initialViewState } from "@/data/checkins";
+import {
+  placesToGeoJSON,
+  initialViewState,
+  type Place,
+} from "@/data/places";
 
 // Layer ids are referenced both in the <Layer> definitions and when we detect
 // what was clicked, so they live here as constants.
 const CLUSTER_LAYER_ID = "clusters";
 const CLUSTER_COUNT_LAYER_ID = "cluster-count";
 const UNCLUSTERED_LAYER_ID = "unclustered-point";
-const SOURCE_ID = "checkins";
+const SOURCE_ID = "places";
 
 // Rust = #C6603C, cream/paper = #F6F3EC — matches the site's palette.
 const RUST = "#C6603C";
@@ -55,7 +59,7 @@ const clusterCountLayer: LayerProps = {
   },
 };
 
-// A single (unclustered) check-in.
+// A single (unclustered) place pin.
 const unclusteredPointLayer: LayerProps = {
   id: UNCLUSTERED_LAYER_ID,
   type: "circle",
@@ -73,20 +77,21 @@ type PopupInfo = {
   longitude: number;
   latitude: number;
   name: string;
-  category: string;
+  visitedDate: string | null;
 };
 
 export default function CheckInMap({
+  places,
   className = "h-64 md:h-80 w-full overflow-hidden rounded-2xl",
 }: {
+  places: Place[];
   className?: string;
 }) {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef>(null);
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
 
-  // Precompute the GeoJSON once per render.
-  const data = checkinsToGeoJSON();
+  const data = placesToGeoJSON(places);
 
   const handleClick = useCallback((event: MapLayerMouseEvent) => {
     const feature = event.features?.[0];
@@ -112,13 +117,13 @@ export default function CheckInMap({
       return;
     }
 
-    // An individual check-in: show a small popup with its name + category.
+    // An individual place: show name + visited date (when present).
     const [longitude, latitude] = (feature.geometry as GeoJSON.Point).coordinates;
     setPopupInfo({
       longitude,
       latitude,
       name: (feature.properties?.name as string) ?? "",
-      category: (feature.properties?.category as string) ?? "",
+      visitedDate: (feature.properties?.visited_date as string) ?? null,
     });
   }, []);
 
@@ -162,9 +167,11 @@ export default function CheckInMap({
           >
             <div className="px-1 py-0.5">
               <p className="text-sm text-ink">{popupInfo.name}</p>
-              <p className="text-xs uppercase tracking-widest2 text-ink/50">
-                {popupInfo.category}
-              </p>
+              {popupInfo.visitedDate && (
+                <p className="text-xs uppercase tracking-widest2 text-ink/50">
+                  {popupInfo.visitedDate}
+                </p>
+              )}
             </div>
           </Popup>
         )}
