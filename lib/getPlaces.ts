@@ -1,5 +1,9 @@
 import { supabase } from "./supabaseClient";
-import { places as staticPlaces, type Place } from "@/data/places";
+import {
+  places as staticPlaces,
+  normalizeCategory,
+  type Place,
+} from "@/data/places";
 
 // Fetches visited places for the Mapbox globe. Falls back to data/places.ts
 // if Supabase isn't configured, the query fails, or the table is empty
@@ -9,7 +13,7 @@ export async function getPlaces(): Promise<Place[]> {
 
   const { data, error } = await supabase
     .from("places")
-    .select("id, name, lat, lng, visited_date")
+    .select("id, name, lat, lng, visited_date, category")
     .order("visited_date", { ascending: false, nullsFirst: false });
 
   if (error || !data) {
@@ -19,5 +23,9 @@ export async function getPlaces(): Promise<Place[]> {
 
   if (data.length === 0) return staticPlaces;
 
-  return data as Place[];
+  // Normalize "Cafés" / "Bakery" → cafes / bakeries for pin colors + popups.
+  return (data as Place[]).map((place) => ({
+    ...place,
+    category: normalizeCategory(place.category) ?? place.category,
+  }));
 }

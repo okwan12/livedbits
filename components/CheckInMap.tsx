@@ -9,11 +9,12 @@ import Map, {
   type MapLayerMouseEvent,
   type LayerProps,
 } from "react-map-gl";
-import type { GeoJSONSource } from "mapbox-gl";
+import type { Expression, GeoJSONSource } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import {
   placesToGeoJSON,
   initialViewState,
+  categoryColorMatchExpression,
   type Place,
 } from "@/data/places";
 
@@ -24,18 +25,20 @@ const CLUSTER_COUNT_LAYER_ID = "cluster-count";
 const UNCLUSTERED_LAYER_ID = "unclustered-point";
 const SOURCE_ID = "places";
 
-// Rust = #C6603C, cream/paper = #F6F3EC — matches the site's palette.
-const RUST = "#C6603C";
 const PAPER = "#F6F3EC";
+const CLUSTER_COLOR = "#6B6B6B";
+
+const categoryCircleColor = categoryColorMatchExpression() as Expression;
 
 // Filled circle for a cluster; grows a little as the cluster gets bigger.
+// Clusters stay neutral — they mix categories.
 const clusterLayer: LayerProps = {
   id: CLUSTER_LAYER_ID,
   type: "circle",
   source: SOURCE_ID,
   filter: ["has", "point_count"],
   paint: {
-    "circle-color": RUST,
+    "circle-color": CLUSTER_COLOR,
     "circle-opacity": 0.85,
     "circle-radius": ["step", ["get", "point_count"], 16, 5, 22, 15, 28],
     "circle-stroke-width": 2,
@@ -59,15 +62,15 @@ const clusterCountLayer: LayerProps = {
   },
 };
 
-// A single (unclustered) place pin.
+// A single (unclustered) place pin — colored by category.
 const unclusteredPointLayer: LayerProps = {
   id: UNCLUSTERED_LAYER_ID,
   type: "circle",
   source: SOURCE_ID,
   filter: ["!", ["has", "point_count"]],
   paint: {
-    "circle-color": RUST,
-    "circle-radius": 6,
+    "circle-color": categoryCircleColor,
+    "circle-radius": 7,
     "circle-stroke-width": 2,
     "circle-stroke-color": PAPER,
   },
@@ -78,7 +81,23 @@ type PopupInfo = {
   latitude: number;
   name: string;
   visitedDate: string | null;
+  category: string | null;
 };
+
+/** Formats YYYY-MM-DD as "April 2014". */
+function formatMonthYear(isoDate: string): string {
+  const d = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return isoDate;
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+}
+
+function popupCaption(category: string | null, visitedDate: string | null): string {
+  const parts = [
+    category,
+    visitedDate ? formatMonthYear(visitedDate) : null,
+  ].filter(Boolean);
+  return parts.join(" • ");
+}
 
 export default function CheckInMap({
   places,
@@ -117,18 +136,23 @@ export default function CheckInMap({
       return;
     }
 
-    // An individual place: show name + visited date (when present).
+    // An individual place: name + "category • Month Year" caption.
     const [longitude, latitude] = (feature.geometry as GeoJSON.Point).coordinates;
     setPopupInfo({
       longitude,
       latitude,
       name: (feature.properties?.name as string) ?? "",
       visitedDate: (feature.properties?.visited_date as string) ?? null,
+      category: (feature.properties?.category as string) ?? null,
     });
   }, []);
 
   // No token → render nothing rather than crashing.
   if (!token) return null;
+
+  const caption = popupInfo
+    ? popupCaption(popupInfo.category, popupInfo.visitedDate)
+    : "";
 
   return (
     <div className={className}>
@@ -167,10 +191,8 @@ export default function CheckInMap({
           >
             <div className="px-1 py-0.5">
               <p className="text-sm text-ink">{popupInfo.name}</p>
-              {popupInfo.visitedDate && (
-                <p className="text-xs uppercase tracking-widest2 text-ink/50">
-                  {popupInfo.visitedDate}
-                </p>
+              {caption && (
+                <p className="text-xs text-ink/45 mt-0.5">{caption}</p>
               )}
             </div>
           </Popup>
