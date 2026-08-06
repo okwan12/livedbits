@@ -13,7 +13,7 @@ export async function getPlaces(): Promise<Place[]> {
 
   const { data, error } = await supabase
     .from("places")
-    .select("id, name, lat, lng, visited_date, category")
+    .select("id, name, lat, lng, visited_date, category, city, country")
     .order("visited_date", { ascending: false, nullsFirst: false });
 
   if (error || !data) {

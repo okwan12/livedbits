@@ -8,6 +8,8 @@ create table if not exists places (
   lng double precision not null,
   visited_date date,
   category text, -- slug: restaurants, cafes, bakeries, shops, sites, drinks, markets, sweet-treats
+  city text,
+  country text,
   created_at timestamptz default now()
 );
 

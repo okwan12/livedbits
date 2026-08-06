@@ -5,6 +5,8 @@ export type Place = {
   lng: number;
   visited_date: string | null; // YYYY-MM-DD, or null if unknown
   category: string | null; // slug, e.g. "cafes" — see CATEGORY_COLORS
+  city: string | null;
+  country: string | null;
 };
 
 /** Canonical category slugs (no emoji). Unknown / null → DEFAULT_CATEGORY_COLOR. */
@@ -85,6 +87,8 @@ export const places: Place[] = [
     lng: 135.7681,
     visited_date: null,
     category: "sites",
+    city: "Kyoto",
+    country: "Japan",
   },
   {
     id: "tokyo",
@@ -93,6 +97,8 @@ export const places: Place[] = [
     lng: 139.6917,
     visited_date: null,
     category: "shops",
+    city: "Tokyo",
+    country: "Japan",
   },
   {
     id: "berlin",
@@ -101,6 +107,8 @@ export const places: Place[] = [
     lng: 13.405,
     visited_date: null,
     category: "cafes",
+    city: "Berlin",
+    country: "Germany",
   },
   {
     id: "amsterdam",
@@ -109,6 +117,8 @@ export const places: Place[] = [
     lng: 4.9041,
     visited_date: null,
     category: "restaurants",
+    city: "Amsterdam",
+    country: "Netherlands",
   },
   {
     id: "san-francisco",
@@ -117,14 +127,17 @@ export const places: Place[] = [
     lng: -122.4194,
     visited_date: null,
     category: null,
+    city: "San Francisco",
+    country: "USA",
   },
 ];
 
-// Where the map first looks. Adjust after you swap in real places.
+// Where the map first looks — Bay Area so your seeded places are visible.
+// Widen (lower zoom) once you have pins worldwide.
 export const initialViewState = {
-  longitude: 60,
-  latitude: 45,
-  zoom: 1.4,
+  longitude: -122.4,
+  latitude: 37.78,
+  zoom: 10,
 };
 
 // Converts places into a GeoJSON FeatureCollection for Mapbox clustering.
@@ -136,15 +149,19 @@ export function placesToGeoJSON(
   return {
     type: "FeatureCollection",
     features: list.map((place) => {
-      const category = normalizeCategory(place.category) ?? place.category;
+      // Use "" instead of null — Mapbox match expressions are happier with strings.
+      const category =
+        normalizeCategory(place.category) ?? place.category ?? "";
       return {
         type: "Feature",
         geometry: { type: "Point", coordinates: [place.lng, place.lat] },
         properties: {
           id: place.id,
           name: place.name,
-          visited_date: place.visited_date,
+          visited_date: place.visited_date ?? "",
           category,
+          city: place.city ?? "",
+          country: place.country ?? "",
         },
       };
     }),
@@ -153,7 +170,10 @@ export function placesToGeoJSON(
 
 /** Mapbox paint expression: match category → color, else default gray. */
 export function categoryColorMatchExpression(): unknown[] {
-  const expr: unknown[] = ["match", ["get", "category"]];
+  const expr: unknown[] = [
+    "match",
+    ["coalesce", ["get", "category"], ""],
+  ];
   for (const [slug, { color }] of Object.entries(CATEGORY_COLORS)) {
     expr.push(slug, color);
   }

@@ -1,7 +1,15 @@
+import dynamic from "next/dynamic";
 import PhotoGrid from "@/components/PhotoGrid";
-import CheckInMap from "@/components/CheckInMap";
 import { getPhotos } from "@/lib/getPhotos";
 import { getPlaces } from "@/lib/getPlaces";
+
+// Mapbox touches `document` at import time — never SSR this component.
+const CheckInMap = dynamic(() => import("@/components/CheckInMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-72 md:h-[440px] w-full rounded-2xl bg-ink/[0.03]" />
+  ),
+});
 
 export const revalidate = 60; // re-check Supabase for new photos/places every 60s
 
@@ -25,7 +33,7 @@ export default async function HomePage() {
             </h2>
             <CheckInMap
               places={places}
-              className="h-72 md:h-[440px] w-full overflow-hidden rounded-2xl"
+              className="h-72 md:h-[440px] w-full rounded-2xl"
             />
           </div>
 

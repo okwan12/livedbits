@@ -25,6 +25,21 @@ body {
   outline-offset: 3px;
 }
 
+/* Mapbox GL: canvas is position:absolute, so the container needs an
+   explicit size + positioning context or tiles never paint (logo only). */
+.mapboxgl-map,
+.mapboxgl-canvas-container {
+  width: 100%;
+  height: 100%;
+}
+.mapboxgl-canvas-container {
+  position: relative;
+}
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .journal-body p {
   margin-bottom: 1.25em;
 }

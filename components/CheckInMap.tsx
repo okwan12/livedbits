@@ -82,13 +82,18 @@ type PopupInfo = {
   name: string;
   visitedDate: string | null;
   category: string | null;
+  city: string | null;
+  country: string | null;
 };
 
-/** Formats YYYY-MM-DD as "April 2014". */
 function formatMonthYear(isoDate: string): string {
   const d = new Date(`${isoDate}T00:00:00`);
   if (Number.isNaN(d.getTime())) return isoDate;
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+function popupLocation(city: string | null, country: string | null): string {
+  return [city, country].filter(Boolean).join(", ");
 }
 
 function popupCaption(category: string | null, visitedDate: string | null): string {
@@ -100,8 +105,10 @@ function popupCaption(category: string | null, visitedDate: string | null): stri
 }
 
 export default function CheckInMap({
+  // Avoid overflow-hidden here — it can blank the Mapbox WebGL canvas
+  // in some browsers while leaving the HTML logo visible.
   places,
-  className = "h-64 md:h-80 w-full overflow-hidden rounded-2xl",
+  className = "h-64 md:h-80 w-full rounded-2xl",
 }: {
   places: Place[];
   className?: string;
@@ -111,6 +118,14 @@ export default function CheckInMap({
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
 
   const data = placesToGeoJSON(places);
+
+  const handleMapLoad = useCallback(() => {
+    mapRef.current?.getMap()?.resize();
+  }, []);
+
+  const handleMapError = useCallback((event: { error?: Error }) => {
+    console.error("[CheckInMap]", event.error ?? event);
+  }, []);
 
   const handleClick = useCallback((event: MapLayerMouseEvent) => {
     const feature = event.features?.[0];
@@ -136,20 +151,33 @@ export default function CheckInMap({
       return;
     }
 
-    // An individual place: name + "category • Month Year" caption.
+    // An individual place: name / City, Country / category • Month Year.
     const [longitude, latitude] = (feature.geometry as GeoJSON.Point).coordinates;
     setPopupInfo({
       longitude,
       latitude,
-      name: (feature.properties?.name as string) ?? "",
-      visitedDate: (feature.properties?.visited_date as string) ?? null,
-      category: (feature.properties?.category as string) ?? null,
+      name: (feature.properties?.name as string) || "",
+      visitedDate: (feature.properties?.visited_date as string) || null,
+      category: (feature.properties?.category as string) || null,
+      city: (feature.properties?.city as string) || null,
+      country: (feature.properties?.country as string) || null,
     });
   }, []);
 
-  // No token → render nothing rather than crashing.
-  if (!token) return null;
+  // No token → show a clear empty state rather than a silent blank.
+  if (!token) {
+    return (
+      <div
+        className={`${className} flex items-center justify-center border border-ink/10 bg-ink/[0.02] font-body text-sm text-ink/50`}
+      >
+        Map token missing — add NEXT_PUBLIC_MAPBOX_TOKEN to .env.local
+      </div>
+    );
+  }
 
+  const locationLine = popupInfo
+    ? popupLocation(popupInfo.city, popupInfo.country)
+    : "";
   const caption = popupInfo
     ? popupCaption(popupInfo.category, popupInfo.visitedDate)
     : "";
@@ -163,8 +191,10 @@ export default function CheckInMap({
         mapStyle="mapbox://styles/mapbox/light-v11"
         interactiveLayerIds={[CLUSTER_LAYER_ID, UNCLUSTERED_LAYER_ID]}
         onClick={handleClick}
+        onLoad={handleMapLoad}
+        onError={handleMapError}
         attributionControl={false}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "100%", borderRadius: "1rem" }}
       >
         <Source
           id={SOURCE_ID}
@@ -190,7 +220,10 @@ export default function CheckInMap({
             className="font-body"
           >
             <div className="px-1 py-0.5">
-              <p className="text-sm text-ink">{popupInfo.name}</p>
+              <p className="text-sm font-medium text-ink">{popupInfo.name}</p>
+              {locationLine && (
+                <p className="text-sm text-ink/70 mt-0.5">{locationLine}</p>
+              )}
               {caption && (
                 <p className="text-xs text-ink/45 mt-0.5">{caption}</p>
               )}
