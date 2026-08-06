@@ -18,14 +18,14 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="max-w-2xl mx-auto px-6 pt-8 md:pt-12 pb-16">
+      <section className="px-8 pt-8 md:pt-12 pb-16">
         {/* TODO: confirm the name and one-line identity in your own words. */}
         <p className="mt-5 font-body text-lg md:text-xl text-ink/70 leading-relaxed">
         Welcome to my world.
         </p>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 pb-24">
+      <section className="px-8 pb-24">
         <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2">
             <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
@@ -101,16 +101,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 pb-24">
+      <section className="px-8 pb-24">
         <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
           Cleaning out my Camera Roll
         </h2>
         <PhotoGrid photos={photos.slice(0, 6)} />
       </section>
 
-      <section className="max-w-2xl mx-auto px-6 pb-28">
+      <section className="px-8 pb-28">
         <h2 className="font-body text-sm uppercase tracking-widest2 text-ink/50 mb-8">
-          Quote of the Day
+          Quote of the Week
         </h2>
         {/* TODO: rewrite these in your own words — grounded, first person, no
             filler. Add or remove blurbs as you like. */}
