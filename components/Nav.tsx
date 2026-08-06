@@ -11,8 +11,8 @@ export default function Nav() {
           livedbits
         </Link>
         <nav className="flex gap-6 font-body text-sm text-ink/70">
-          <Link href="/" className="hover:text-rust focus-ring">
-            Photography
+          <Link href="/through-my-eyes" className="hover:text-rust focus-ring">
+            Through My Eyes
           </Link>
           <Link href="/journal" className="hover:text-rust focus-ring">
             Journal

@@ -22,6 +22,14 @@ export default async function HomePage() {
     getSongs(),
   ]);
 
+  // Same places array the map uses — keep these counters in sync with pins.
+  const totalStops = places.length;
+  const citiesExplored = new Set(
+    places
+      .map((place) => place.city?.trim())
+      .filter((city): city is string => Boolean(city))
+  ).size;
+
   return (
     <div>
       <section className="px-8 pt-8 md:pt-12 pb-16">
@@ -114,13 +122,13 @@ export default async function HomePage() {
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-sm text-ink/60">cities explored</span>
                     <span className="font-display text-2xl text-ink">
-                      {/* TODO */}—
+                      {citiesExplored}
                     </span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-sm text-ink/60">total stops</span>
                     <span className="font-display text-2xl text-ink">
-                      {/* TODO */}—
+                      {totalStops}
                     </span>
                   </div>
                 </div>

@@ -4,7 +4,7 @@ export default function AboutPage() {
       <p className="font-mono text-xs tracking-widest2 uppercase text-rust mb-3">
         About
       </p>
-      <h1 className="font-display text-5xl text-ink mb-6">THE PERSON BEHIND THE LENS</h1>
+      <h1 className="font-display text-5xl text-ink mb-6">Hey there :) </h1>
       <p className="font-body text-lg text-ink/80 leading-relaxed mb-4">
         I'm Olivia — I studied international business and marketing, spent a
         semester in Berlin, and have been finding reasons to be somewhere new
