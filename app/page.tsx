@@ -99,6 +99,7 @@ export default async function HomePage() {
 
                 <div className="space-y-4">
                   <div className="flex flex-col items-center gap-2">
+                    <span className="text-sm text-ink/60">15 countries visited</span>
                     <div
                       className="flex flex-wrap justify-center gap-x-1.5 gap-y-1 text-xl leading-none"
                       aria-label={`${countriesVisited.length} countries visited`}
@@ -109,19 +110,18 @@ export default async function HomePage() {
                         </span>
                       ))}
                     </div>
-                    <span className="text-sm text-ink/60">countries visited</span>
                   </div>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="font-display text-2xl text-ink">
-                      {/* TODO */}—
-                    </span>
+                  <div className="flex flex-col items-center gap-1">
                     <span className="text-sm text-ink/60">cities explored</span>
-                  </div>
-                  <div className="flex items-baseline justify-center gap-2">
                     <span className="font-display text-2xl text-ink">
                       {/* TODO */}—
                     </span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
                     <span className="text-sm text-ink/60">total stops</span>
+                    <span className="font-display text-2xl text-ink">
+                      {/* TODO */}—
+                    </span>
                   </div>
                 </div>
               </div>
