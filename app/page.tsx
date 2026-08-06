@@ -3,6 +3,7 @@ import PhotoGrid from "@/components/PhotoGrid";
 import { getPhotos } from "@/lib/getPhotos";
 import { getPlaces } from "@/lib/getPlaces";
 import { getSongs } from "@/lib/getSongs";
+import { countriesVisited } from "@/data/countries";
 
 // Mapbox touches `document` at import time — never SSR this component.
 const CheckInMap = dynamic(() => import("@/components/CheckInMap"), {
@@ -49,7 +50,7 @@ export default async function HomePage() {
             {/* TODO: replace the placeholder numbers and lines below with your
                 own. Keep them short and specific; delete any row that doesn't
                 apply to you. */}
-            <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-6 md:h-[440px] overflow-y-auto font-body">
+            <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-6 md:h-[440px] overflow-y-auto font-body text-center">
               <div className="space-y-6">
                 <div>
                   <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
@@ -97,19 +98,26 @@ export default async function HomePage() {
                 <div className="h-px bg-ink/10" />
 
                 <div className="space-y-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-display text-2xl text-ink">
-                      {/* TODO */}—
-                    </span>
+                  <div className="flex flex-col items-center gap-2">
+                    <div
+                      className="flex flex-wrap justify-center gap-x-1.5 gap-y-1 text-xl leading-none"
+                      aria-label={`${countriesVisited.length} countries visited`}
+                    >
+                      {countriesVisited.map((country) => (
+                        <span key={country.name} title={country.name}>
+                          {country.flag}
+                        </span>
+                      ))}
+                    </div>
                     <span className="text-sm text-ink/60">countries visited</span>
                   </div>
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline justify-center gap-2">
                     <span className="font-display text-2xl text-ink">
                       {/* TODO */}—
                     </span>
                     <span className="text-sm text-ink/60">cities explored</span>
                   </div>
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline justify-center gap-2">
                     <span className="font-display text-2xl text-ink">
                       {/* TODO */}—
                     </span>
