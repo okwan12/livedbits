@@ -43,6 +43,21 @@ create policy "Public photos are viewable by everyone"
 on photos for select
 using (true);
 
+create table if not exists songs (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  artist text not null,
+  url text,
+  sort_order integer not null default 0,
+  created_at timestamptz default now()
+);
+
+alter table songs enable row level security;
+
+create policy "Public songs are viewable by everyone"
+on songs for select
+using (true);
+
 -- Seed with the same sample rows as data/photos.ts, so the site works
 -- immediately once you connect it. Delete these once you add real photos.
 insert into photos (id, src, alt, city, country, date, roll, frame, featured) values

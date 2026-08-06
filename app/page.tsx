@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import PhotoGrid from "@/components/PhotoGrid";
 import { getPhotos } from "@/lib/getPhotos";
 import { getPlaces } from "@/lib/getPlaces";
+import { getSongs } from "@/lib/getSongs";
 
 // Mapbox touches `document` at import time — never SSR this component.
 const CheckInMap = dynamic(() => import("@/components/CheckInMap"), {
@@ -14,7 +15,11 @@ const CheckInMap = dynamic(() => import("@/components/CheckInMap"), {
 export const revalidate = 60; // re-check Supabase for new photos/places every 60s
 
 export default async function HomePage() {
-  const [photos, places] = await Promise.all([getPhotos(), getPlaces()]);
+  const [photos, places, songs] = await Promise.all([
+    getPhotos(),
+    getPlaces(),
+    getSongs(),
+  ]);
 
   return (
     <div>
@@ -53,17 +58,33 @@ export default async function HomePage() {
                   <p className="text-sm text-ink/70">New Jersey</p>
                 </div>
 
-                <div>
-                  <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
-                    Listening to
-                  </p>
-                  {/* TODO: a few tracks or artists, one per line */}
-                  <div className="space-y-1 text-sm text-ink/70">
-                    <p>—</p>
-                    <p>—</p>
-                    <p>—</p>
+                {songs.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
+                      Listening to
+                    </p>
+                    <ul className="space-y-1 text-sm text-ink/70">
+                      {songs.map((song) => (
+                        <li key={song.id}>
+                          {song.url ? (
+                            <a
+                              href={song.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:text-rust focus-ring"
+                            >
+                              {song.title} — {song.artist}
+                            </a>
+                          ) : (
+                            <span>
+                              {song.title} — {song.artist}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                )}
 
                 <div>
                   <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
