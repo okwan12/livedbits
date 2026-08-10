@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "upload-photos": "node scripts/bulk-upload.js",
-    "import-places": "node scripts/import-places.js"
+    "import-places": "node scripts/import-places.js",
+    "fixup-places-coords": "node scripts/fixup-places-coords.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

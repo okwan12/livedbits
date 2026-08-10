@@ -2,8 +2,8 @@
 //
 // Modes:
 //   Default  — geocode Title via Mapbox (old Takeout files without lat/lng).
-//   --coords — read lat/lng from the Google Maps URL (@LAT,LNG), falling
-//              back to Latitude / Longitude columns (no geocoding).
+//   --coords — read lat/lng from the Google Maps URL (!3d!4d marker, else
+//              @LAT,LNG camera), falling back to Latitude / Longitude columns.
 //
 // Usage (from the project root):
 //   npm run import-places -- --csv path/to/file.csv --coords --limit 10 --dry-run
@@ -12,7 +12,7 @@
 //
 // Options:
 //   --csv <path>   Required.
-//   --coords       Use URL @LAT,LNG (else Latitude/Longitude columns).
+//   --coords       Use URL !3d!4d / @LAT,LNG (else Lat/Lng columns).
 //   --limit <n>    Only process the first n titled rows.
 //   --dry-run      Log results; do not write to Supabase.
 //   --near <region>  Geocode mode only — bias string (optional).
@@ -194,18 +194,41 @@ function cell(row, ...keys) {
   return "";
 }
 
-// Match /@37.7562439,-122.4758048,17z (zoom optional).
-const AT_COORDS = /@(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,[\d.]+z)?/i;
+// Place marker: !3dLAT!4dLNG  — prefer this over the camera center.
+const MARKER_COORDS = /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/i;
+// Camera center: /@37.7562439,-122.4758048,17z (zoom optional).
+const CAMERA_COORDS = /@(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,[\d.]+z)?/i;
+
+function validLatLng(lat, lng) {
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
 
 function coordsFromMapsUrl(url) {
   if (!url) return null;
-  const m = String(url).match(AT_COORDS);
-  if (!m) return null;
-  const lat = Number(m[1]);
-  const lng = Number(m[2]);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-  return { lat, lng, source: "url" };
+  const text = String(url);
+
+  const marker = text.match(MARKER_COORDS);
+  if (marker) {
+    const lat = Number(marker[1]);
+    const lng = Number(marker[2]);
+    if (validLatLng(lat, lng)) return { lat, lng, source: "url-marker" };
+  }
+
+  const camera = text.match(CAMERA_COORDS);
+  if (camera) {
+    const lat = Number(camera[1]);
+    const lng = Number(camera[2]);
+    if (validLatLng(lat, lng)) return { lat, lng, source: "url-camera" };
+  }
+
+  return null;
 }
 
 function parseCoords(row) {
@@ -215,15 +238,12 @@ function parseCoords(row) {
   const latRaw = cell(row, "Latitude", "latitude", "lat");
   const lngRaw = cell(row, "Longitude", "longitude", "lng", "lon", "long");
   if (!latRaw || !lngRaw) {
-    throw new Error("missing URL @coords and Latitude/Longitude");
+    throw new Error("missing URL marker/camera coords and Latitude/Longitude");
   }
   const lat = Number(latRaw);
   const lng = Number(lngRaw);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+  if (!validLatLng(lat, lng)) {
     throw new Error(`invalid coordinates (${latRaw}, ${lngRaw})`);
-  }
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    throw new Error(`coordinates out of range (${lat}, ${lng})`);
   }
   return { lat, lng, source: "columns" };
 }
@@ -421,7 +441,7 @@ async function main() {
   console.log(
     `Source: ${
       opts.coords
-        ? "URL @LAT,LNG (fallback: Latitude/Longitude columns)"
+        ? "URL !3d!4d marker, else @camera, else Lat/Lng columns"
         : "Mapbox geocode"
     }`
   );
