@@ -2,7 +2,8 @@
 //
 // Modes:
 //   Default  — geocode Title via Mapbox (old Takeout files without lat/lng).
-//   --coords — read Latitude / Longitude from the CSV (no geocoding).
+//   --coords — read lat/lng from the Google Maps URL (@LAT,LNG), falling
+//              back to Latitude / Longitude columns (no geocoding).
 //
 // Usage (from the project root):
 //   npm run import-places -- --csv path/to/file.csv --coords --limit 10 --dry-run
@@ -11,7 +12,7 @@
 //
 // Options:
 //   --csv <path>   Required.
-//   --coords       Use Latitude/Longitude columns instead of geocoding.
+//   --coords       Use URL @LAT,LNG (else Latitude/Longitude columns).
 //   --limit <n>    Only process the first n titled rows.
 //   --dry-run      Log results; do not write to Supabase.
 //   --near <region>  Geocode mode only — bias string (optional).
@@ -193,11 +194,28 @@ function cell(row, ...keys) {
   return "";
 }
 
+// Match /@37.7562439,-122.4758048,17z (zoom optional).
+const AT_COORDS = /@(-?\d+\.?\d*),(-?\d+\.?\d*)(?:,[\d.]+z)?/i;
+
+function coordsFromMapsUrl(url) {
+  if (!url) return null;
+  const m = String(url).match(AT_COORDS);
+  if (!m) return null;
+  const lat = Number(m[1]);
+  const lng = Number(m[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return { lat, lng, source: "url" };
+}
+
 function parseCoords(row) {
+  const fromUrl = coordsFromMapsUrl(cell(row, "URL", "url"));
+  if (fromUrl) return fromUrl;
+
   const latRaw = cell(row, "Latitude", "latitude", "lat");
   const lngRaw = cell(row, "Longitude", "longitude", "lng", "lon", "long");
   if (!latRaw || !lngRaw) {
-    throw new Error("missing Latitude/Longitude");
+    throw new Error("missing URL @coords and Latitude/Longitude");
   }
   const lat = Number(latRaw);
   const lng = Number(lngRaw);
@@ -207,7 +225,7 @@ function parseCoords(row) {
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
     throw new Error(`coordinates out of range (${lat}, ${lng})`);
   }
-  return { lat, lng };
+  return { lat, lng, source: "columns" };
 }
 
 /** Optional YYYY from "Year Visited" → visited_date as YYYY-01-01. */
@@ -400,7 +418,13 @@ async function main() {
   console.log(`CSV: ${csvPath}`);
   console.log(`Rows in file: ${totalInFile} (${emptyTitleCount} empty Title skipped)`);
   console.log(`Processing: ${rows.length}${opts.limit != null ? ` (limit ${opts.limit})` : ""}`);
-  console.log(`Source: ${opts.coords ? "CSV Latitude/Longitude (--coords)" : "Mapbox geocode"}`);
+  console.log(
+    `Source: ${
+      opts.coords
+        ? "URL @LAT,LNG (fallback: Latitude/Longitude columns)"
+        : "Mapbox geocode"
+    }`
+  );
   console.log(`Mode: ${opts.dryRun ? "dry-run (no DB writes)" : "insert"}`);
   if (!opts.coords) {
     console.log(`Delay: ${opts.delay}ms between rows`);
@@ -442,8 +466,9 @@ async function main() {
       let city = null;
       let country = null;
 
+      let coordSource = null;
       if (opts.coords) {
-        ({ lat, lng } = parseCoords(row));
+        ({ lat, lng, source: coordSource } = parseCoords(row));
       } else {
         const geo = await geocodePlace(name, {
           token: mapboxToken,
@@ -458,7 +483,7 @@ async function main() {
       const visited_date = visitedDateFromRow(row);
       const catNote = category ? ` · ${category}` : " · (no category)";
       const where = opts.coords
-        ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        ? `${lat.toFixed(7)}, ${lng.toFixed(7)} · ${coordSource}`
         : [city, country].filter(Boolean).join(", ") || "unknown location";
       const action = existingId ? "update" : "insert";
 
