@@ -1,21 +1,25 @@
-// Geocode a Google Takeout "Saved Places" CSV and insert rows into Supabase `places`.
+// Import places into Supabase from a CSV.
+//
+// Modes:
+//   Default  — geocode Title via Mapbox (old Takeout files without lat/lng).
+//   --coords — read Latitude / Longitude from the CSV (no geocoding).
 //
 // Usage (from the project root):
-//   node scripts/import-places.js --csv path/to/saved-places.csv --limit 5
-//   node scripts/import-places.js --csv path/to/saved-places.csv --limit 5 --dry-run
-//   node scripts/import-places.js --csv path/to/saved-places.csv
+//   npm run import-places -- --csv path/to/file.csv --coords --limit 10 --dry-run
+//   npm run import-places -- --csv path/to/file.csv --coords
+//   npm run import-places -- --csv path/to/old-takeout.csv --limit 5 --dry-run
 //
 // Options:
-//   --csv <path>       Required. Takeout CSV with Title, Note, URL, Tags, Comment.
-//   --limit <n>        Only process the first n data rows (great for a test slice).
-//   --dry-run          Geocode + log, but do NOT write to Supabase.
-//   --near <region>    Appended to each query to bias Mapbox (default below).
-//   --delay <ms>       Pause between rows (default 250).
+//   --csv <path>   Required.
+//   --coords       Use Latitude/Longitude columns instead of geocoding.
+//   --limit <n>    Only process the first n titled rows.
+//   --dry-run      Log results; do not write to Supabase.
+//   --near <region>  Geocode mode only — bias string (optional).
+//   --delay <ms>   Pause between rows (default 250; geocode mode).
 //
 // Needs in .env.local:
-//   NEXT_PUBLIC_MAPBOX_TOKEN
-//   NEXT_PUBLIC_SUPABASE_URL
-//   SUPABASE_SERVICE_ROLE_KEY   (unless --dry-run)
+//   NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (unless --dry-run)
+//   NEXT_PUBLIC_MAPBOX_TOKEN (geocode mode only)
 
 require("dotenv").config({ path: ".env.local" });
 const fs = require("fs");
@@ -23,43 +27,57 @@ const path = require("path");
 const { parse } = require("csv-parse/sync");
 const { createClient } = require("@supabase/supabase-js");
 
-// Exact Takeout tag strings → canonical slugs used by the map.
+// Exact Takeout tag strings → canonical SINGULAR slugs.
 const TAG_TO_CATEGORY = {
-  "🍴 restaurants": "restaurants",
-  "☕️ cafés": "cafes",
-  "🍞 bakeries": "bakeries",
-  "🛍️ shops": "shops",
-  "🚩 Sites": "sites",
-  "🍸 drinks": "drinks",
-  "🌻 Markets": "markets",
-  "🍦 sweet treat": "sweet-treats",
+  "🍴 restaurants": "restaurant",
+  "🍴 restaurant": "restaurant",
+  "☕️ cafés": "cafe",
+  "☕️ cafe": "cafe",
+  "🍞 bakeries": "bakery",
+  "🍞 bakery": "bakery",
+  "🛍️ shops": "shop",
+  "🛍️ shop": "shop",
+  "🚩 Sites": "site",
+  "🚩 Site": "site",
+  "🚩 sites": "site",
+  "🚩 site": "site",
+  "🍸 drinks": "drink",
+  "🍸 drink": "drink",
+  "🌻 Markets": "market",
+  "🌻 Market": "market",
+  "🌻 markets": "market",
+  "🌻 market": "market",
+  "🍦 sweet treat": "sweet-treat",
+  "🍦 sweet treats": "sweet-treat",
 };
 
-// Fallback when emoji/spacing differs slightly — match on the text after emoji.
+// Text after (possibly garbled) emoji → singular slug.
+// Plurals still accepted so older CSVs keep working.
 const TAG_TEXT_TO_CATEGORY = {
-  restaurants: "restaurants",
-  restaurant: "restaurants",
-  cafes: "cafes",
-  cafe: "cafes",
-  cafés: "cafes",
-  café: "cafes",
-  bakeries: "bakeries",
-  bakery: "bakeries",
-  shops: "shops",
-  shop: "shops",
-  sites: "sites",
-  site: "sites",
-  drinks: "drinks",
-  drink: "drinks",
-  markets: "markets",
-  market: "markets",
-  "sweet treat": "sweet-treats",
-  "sweet treats": "sweet-treats",
-  "sweet-treats": "sweet-treats",
+  restaurant: "restaurant",
+  restaurants: "restaurant",
+  cafe: "cafe",
+  cafes: "cafe",
+  cafés: "cafe",
+  café: "cafe",
+  bakery: "bakery",
+  bakeries: "bakery",
+  shop: "shop",
+  shops: "shop",
+  site: "site",
+  sites: "site",
+  drink: "drink",
+  drinks: "drink",
+  bar: "drink",
+  bars: "drink",
+  market: "market",
+  markets: "market",
+  "sweet treat": "sweet-treat",
+  "sweet treats": "sweet-treat",
+  "sweet-treat": "sweet-treat",
+  "sweet-treats": "sweet-treat",
 };
 
-// Don't append a city name to the query (that pulled Oakland into SF / HMB).
-// Bias with Bay Area proximity + bbox instead so East Bay can win.
 const DEFAULT_NEAR = "";
 const BAY_AREA_PROXIMITY = "-122.27,37.80";
 const BAY_AREA_BBOX = "-123.10,36.90,-121.50,38.60";
@@ -79,6 +97,7 @@ function parseArgs(argv) {
     csv: null,
     limit: null,
     dryRun: false,
+    coords: false,
     near: DEFAULT_NEAR,
     delay: DEFAULT_DELAY_MS,
   };
@@ -87,6 +106,8 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === "--dry-run") {
       opts.dryRun = true;
+    } else if (arg === "--coords") {
+      opts.coords = true;
     } else if (arg === "--csv") {
       opts.csv = argv[++i];
     } else if (arg === "--limit") {
@@ -103,7 +124,7 @@ function parseArgs(argv) {
   if (!opts.csv) {
     fail(
       "Missing --csv path.\n" +
-        "  Example: node scripts/import-places.js --csv ~/Downloads/saved-places.csv --limit 5"
+        "  Example: npm run import-places -- --csv ~/Downloads/places.csv --coords --limit 10 --dry-run"
     );
   }
   if (opts.limit != null && (!Number.isFinite(opts.limit) || opts.limit < 1)) {
@@ -119,7 +140,6 @@ function parseArgs(argv) {
 function normalizeTagText(text) {
   return text
     .toLowerCase()
-    // Takeout CSVs often mojibake "é" as "√©" (UTF-8 read as MacRoman).
     .replace(/√©/g, "e")
     .replace(/√®/g, "e")
     .normalize("NFD")
@@ -128,11 +148,7 @@ function normalizeTagText(text) {
     .trim();
 }
 
-/**
- * Map a Takeout Tags cell to a category slug, or null if empty/unknown.
- * Emoji in exported CSVs are often garbled — prefer the trailing readable
- * words ("bakeries", "shops", "Sites", "sweet treat", …).
- */
+/** Map a Tags cell to a singular category slug, or null. */
 function categoryFromTags(rawTags) {
   if (rawTags == null) return null;
   const tag = String(rawTags).trim();
@@ -140,21 +156,17 @@ function categoryFromTags(rawTags) {
 
   if (TAG_TO_CATEGORY[tag]) return TAG_TO_CATEGORY[tag];
 
-  // Drop variation selectors (☕️ vs ☕) and retry exact keys.
   const noVs = tag.replace(/\uFE0F/g, "");
   for (const [key, slug] of Object.entries(TAG_TO_CATEGORY)) {
     if (key.replace(/\uFE0F/g, "") === noVs) return slug;
   }
 
-  // Trailing latin words after the garbled emoji prefix.
   const trailing = tag.match(/([A-Za-z][A-Za-z\s'√©®-]*[A-Za-z]|[A-Za-z]+)\s*$/);
   if (trailing) {
     const text = normalizeTagText(trailing[1]);
     if (TAG_TEXT_TO_CATEGORY[text]) return TAG_TEXT_TO_CATEGORY[text];
   }
 
-  // Last resort: known keyword anywhere in the cleaned string.
-  // Longer keys first so "sweet treat" wins over a bare "treat".
   const cleaned = normalizeTagText(tag.replace(/[^\p{L}\p{N}\s'-]+/gu, " "));
   const keys = Object.keys(TAG_TEXT_TO_CATEGORY).sort((a, b) => b.length - a.length);
   for (const key of keys) {
@@ -164,13 +176,54 @@ function categoryFromTags(rawTags) {
   return null;
 }
 
+function cell(row, ...keys) {
+  for (const key of keys) {
+    if (row[key] != null && String(row[key]).trim() !== "") {
+      return String(row[key]).trim();
+    }
+  }
+  // Case-insensitive / trailing-space column names (e.g. "Year Visited ").
+  const lower = Object.fromEntries(
+    Object.entries(row).map(([k, v]) => [k.trim().toLowerCase(), v])
+  );
+  for (const key of keys) {
+    const v = lower[key.trim().toLowerCase()];
+    if (v != null && String(v).trim() !== "") return String(v).trim();
+  }
+  return "";
+}
+
+function parseCoords(row) {
+  const latRaw = cell(row, "Latitude", "latitude", "lat");
+  const lngRaw = cell(row, "Longitude", "longitude", "lng", "lon", "long");
+  if (!latRaw || !lngRaw) {
+    throw new Error("missing Latitude/Longitude");
+  }
+  const lat = Number(latRaw);
+  const lng = Number(lngRaw);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error(`invalid coordinates (${latRaw}, ${lngRaw})`);
+  }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new Error(`coordinates out of range (${lat}, ${lng})`);
+  }
+  return { lat, lng };
+}
+
+/** Optional YYYY from "Year Visited" → visited_date as YYYY-01-01. */
+function visitedDateFromRow(row) {
+  const year = cell(row, "Year Visited", "Year Visited ", "year visited", "year");
+  if (!year) return null;
+  if (!/^\d{4}$/.test(year)) return null;
+  return `${year}-01-01`;
+}
+
 function contextText(feature, prefix) {
   const ctx = feature.context || [];
   const hit = ctx.find((c) => String(c.id || "").startsWith(`${prefix}.`));
   return hit?.text || null;
 }
 
-/** If the title names a Bay Area city, bias the query toward that city. */
 function nearHintFromName(name) {
   const n = name.toLowerCase();
   const cities = [
@@ -195,7 +248,6 @@ function nameTokens(name) {
     .filter((t) => t.length > 2);
 }
 
-/** Prefer a feature whose label overlaps the place name (avoid random cities). */
 function pickBestFeature(features, name) {
   if (!features?.length) return null;
   const tokens = nameTokens(name);
@@ -210,7 +262,6 @@ function pickBestFeature(features, name) {
     for (const t of tokens) {
       if (label.includes(t)) score += 1;
     }
-    // Prefer POIs when scores tie.
     if (feature.place_type?.includes("poi")) score += 0.25;
     if (score > bestScore) {
       bestScore = score;
@@ -218,18 +269,11 @@ function pickBestFeature(features, name) {
     }
   }
 
-  // If nothing overlapped the name, fall back to Mapbox's top result.
   return bestScore > 0 ? best : features[0];
 }
 
-/**
- * Forward-geocode a place name via Mapbox Geocoding API v5.
- * Returns { lng, lat, city, country, placeName } or throws with a reason.
- */
 async function geocodePlace(name, { token, near }) {
   const hint = near || nearHintFromName(name);
-  // Default soft bias: SF (most of the list). Titles that name Oakland /
-  // Berkeley / etc. get that city instead so East Bay can win.
   const query = `${name}, ${hint || "San Francisco, California, United States"}`;
   const url = new URL(
     `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json`
@@ -237,9 +281,7 @@ async function geocodePlace(name, { token, near }) {
   url.searchParams.set("access_token", token);
   url.searchParams.set("limit", "5");
   url.searchParams.set("autocomplete", "false");
-  // Prefer points of interest / places over bare addresses when possible.
   url.searchParams.set("types", "poi,place,address,locality,neighborhood");
-  // Keep candidates inside the broader Bay Area (SF + East Bay + Peninsula…).
   url.searchParams.set("proximity", BAY_AREA_PROXIMITY);
   url.searchParams.set("bbox", BAY_AREA_BBOX);
 
@@ -251,17 +293,13 @@ async function geocodePlace(name, { token, near }) {
 
   const data = await res.json();
   const feature = pickBestFeature(data.features, name);
-  if (!feature) {
-    throw new Error("no geocode results");
-  }
+  if (!feature) throw new Error("no geocode results");
 
   const [lng, lat] = feature.center || feature.geometry?.coordinates || [];
   if (typeof lat !== "number" || typeof lng !== "number") {
     throw new Error("result missing coordinates");
   }
 
-  // City: `place` (city/town) first, then `locality` as a fallback.
-  // If the top feature itself is a place/locality, use its text.
   let city = contextText(feature, "place") || contextText(feature, "locality");
   const topType = feature.place_type?.[0];
   if (!city && (topType === "place" || topType === "locality")) {
@@ -273,24 +311,19 @@ async function geocodePlace(name, { token, near }) {
     country = feature.text || null;
   }
 
-  return {
-    lat,
-    lng,
-    city,
-    country,
-    placeName: feature.place_name || null,
-  };
+  return { lat, lng, city, country };
 }
 
-async function loadExistingNames(supabase) {
-  const names = new Set();
+/** Map of lowercased name → place id (for skip / update). */
+async function loadExistingPlaces(supabase) {
+  const byName = new Map();
   const pageSize = 1000;
   let from = 0;
 
   for (;;) {
     const { data, error } = await supabase
       .from("places")
-      .select("name")
+      .select("id, name")
       .range(from, from + pageSize - 1);
 
     if (error) {
@@ -299,39 +332,46 @@ async function loadExistingNames(supabase) {
     if (!data || data.length === 0) break;
 
     for (const row of data) {
-      if (row.name) names.add(String(row.name).trim().toLowerCase());
+      if (row.name) byName.set(String(row.name).trim().toLowerCase(), row.id);
     }
 
     if (data.length < pageSize) break;
     from += pageSize;
   }
 
-  return names;
+  return byName;
 }
 
 async function main() {
   const opts = parseArgs(process.argv);
   const csvPath = path.resolve(opts.csv);
 
-  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  if (!mapboxToken) {
-    fail("Missing NEXT_PUBLIC_MAPBOX_TOKEN in .env.local.");
-  }
-
   if (!fs.existsSync(csvPath)) {
     fail(`CSV not found: ${csvPath}`);
   }
 
+  let mapboxToken = null;
+  if (!opts.coords) {
+    mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!mapboxToken) {
+      fail("Missing NEXT_PUBLIC_MAPBOX_TOKEN in .env.local (needed for geocode mode).");
+    }
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   let supabase = null;
+
   if (!opts.dryRun) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !serviceKey) {
       fail(
         "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env.local.\n" +
-          "  (Or pass --dry-run to geocode without writing to the database.)"
+          "  (Or pass --dry-run to preview without writing.)"
       );
     }
+    supabase = createClient(url, serviceKey);
+  } else if (url && serviceKey) {
+    // Dry-run can still check which names already exist.
     supabase = createClient(url, serviceKey);
   }
 
@@ -343,21 +383,15 @@ async function main() {
     bom: true,
   });
 
-  if (rows.length === 0) {
-    fail("CSV has no data rows.");
-  }
+  if (rows.length === 0) fail("CSV has no data rows.");
 
   const totalInFile = rows.length;
-  // Legend / blank rows in Takeout exports have empty Title — drop them
-  // before applying --limit so "first 10" means 10 real places.
   const emptyTitleCount = rows.filter(
-    (r) => !(r.Title || r.title || "").trim()
+    (r) => !cell(r, "Title", "title")
   ).length;
-  rows = rows.filter((r) => (r.Title || r.title || "").trim());
+  rows = rows.filter((r) => cell(r, "Title", "title"));
 
-  if (rows.length === 0) {
-    fail("CSV has no rows with a Title.");
-  }
+  if (rows.length === 0) fail("CSV has no rows with a Title.");
 
   if (opts.limit != null) {
     rows = rows.slice(0, opts.limit);
@@ -366,69 +400,104 @@ async function main() {
   console.log(`CSV: ${csvPath}`);
   console.log(`Rows in file: ${totalInFile} (${emptyTitleCount} empty Title skipped)`);
   console.log(`Processing: ${rows.length}${opts.limit != null ? ` (limit ${opts.limit})` : ""}`);
-  console.log(
-    `Near bias: ${
-      opts.near ||
-      "SF default; city-from-title + Bay Area proximity/bbox for East Bay"
-    }`
-  );
+  console.log(`Source: ${opts.coords ? "CSV Latitude/Longitude (--coords)" : "Mapbox geocode"}`);
   console.log(`Mode: ${opts.dryRun ? "dry-run (no DB writes)" : "insert"}`);
-  console.log(`Delay: ${opts.delay}ms between rows\n`);
+  if (!opts.coords) {
+    console.log(`Delay: ${opts.delay}ms between rows`);
+  }
+  console.log("");
 
-  let existingNames = new Set();
-  if (!opts.dryRun) {
-    existingNames = await loadExistingNames(supabase);
-    console.log(`Already in places table: ${existingNames.size} name(s)\n`);
+  let existingByName = new Map();
+  if (supabase) {
+    existingByName = await loadExistingPlaces(supabase);
+    console.log(`Already in places table: ${existingByName.size} name(s)\n`);
   }
 
   let succeeded = 0;
+  let updated = 0;
   let skipped = 0;
   let failed = 0;
   const failures = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const name = (row.Title || row.title || "").trim();
+    const name = cell(row, "Title", "title");
     const indexLabel = `[${i + 1}/${rows.length}]`;
+    const existingId = existingByName.get(name.toLowerCase());
 
-    if (!opts.dryRun && existingNames.has(name.toLowerCase())) {
+    // Geocode mode: skip duplicates. Coords mode: update lat/lng/category
+    // so a corrected CSV can refresh pins without creating duplicates.
+    if (existingId && !opts.coords) {
       console.log(`${indexLabel} ↷ skip "${name}" (already in places)`);
       skipped++;
       await sleep(opts.delay);
       continue;
     }
 
-    const category = categoryFromTags(row.Tags ?? row.tags);
+    const category = categoryFromTags(cell(row, "Tags", "tags", "Tag", "tag"));
 
     try {
-      const geo = await geocodePlace(name, {
-        token: mapboxToken,
-        near: opts.near,
-      });
+      let lat;
+      let lng;
+      let city = null;
+      let country = null;
 
-      const where = [geo.city, geo.country].filter(Boolean).join(", ") || "unknown location";
-      const catNote = category ? ` · ${category}` : "";
+      if (opts.coords) {
+        ({ lat, lng } = parseCoords(row));
+      } else {
+        const geo = await geocodePlace(name, {
+          token: mapboxToken,
+          near: opts.near,
+        });
+        lat = geo.lat;
+        lng = geo.lng;
+        city = geo.city;
+        country = geo.country;
+      }
+
+      const visited_date = visitedDateFromRow(row);
+      const catNote = category ? ` · ${category}` : " · (no category)";
+      const where = opts.coords
+        ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        : [city, country].filter(Boolean).join(", ") || "unknown location";
+      const action = existingId ? "update" : "insert";
 
       if (opts.dryRun) {
+        const mark = existingId ? "↻" : "✓";
         console.log(
-          `${indexLabel} ✓ "${name}" → ${where}${catNote}  (${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)}) [dry-run]`
+          `${indexLabel} ${mark} "${name}" → ${where}${catNote}${visited_date ? ` · ${visited_date.slice(0, 4)}` : ""} [${action}, dry-run]`
         );
-        succeeded++;
+        if (existingId) updated++;
+        else succeeded++;
+      } else if (existingId) {
+        const payload = { lat, lng, category };
+        if (visited_date) payload.visited_date = visited_date;
+        const { error } = await supabase
+          .from("places")
+          .update(payload)
+          .eq("id", existingId);
+        if (error) throw new Error(`Supabase update: ${error.message}`);
+        console.log(`${indexLabel} ↻ "${name}" → ${where}${catNote}`);
+        updated++;
       } else {
-        const { error } = await supabase.from("places").insert({
+        const payload = {
           name,
-          lat: geo.lat,
-          lng: geo.lng,
-          city: geo.city,
-          country: geo.country,
+          lat,
+          lng,
           category,
-        });
+          city,
+          country,
+        };
+        if (visited_date) payload.visited_date = visited_date;
 
-        if (error) {
-          throw new Error(`Supabase insert: ${error.message}`);
-        }
+        const { data, error } = await supabase
+          .from("places")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw new Error(`Supabase insert: ${error.message}`);
 
-        existingNames.add(name.toLowerCase());
+        existingByName.set(name.toLowerCase(), data.id);
         console.log(`${indexLabel} ✓ "${name}" → ${where}${catNote}`);
         succeeded++;
       }
@@ -439,13 +508,14 @@ async function main() {
       failures.push({ name, reason });
     }
 
-    if (i < rows.length - 1) {
+    if (!opts.coords && i < rows.length - 1) {
       await sleep(opts.delay);
     }
   }
 
   console.log("\n—— Summary ——");
-  console.log(`Succeeded: ${succeeded}`);
+  console.log(`Inserted: ${succeeded}`);
+  console.log(`Updated: ${updated}`);
   console.log(`Skipped (already present): ${skipped}`);
   console.log(`Failed: ${failed}`);
 

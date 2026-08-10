@@ -4,52 +4,56 @@ export type Place = {
   lat: number;
   lng: number;
   visited_date: string | null; // YYYY-MM-DD, or null if unknown
-  category: string | null; // slug, e.g. "cafes" — see CATEGORY_COLORS
+  category: string | null; // slug, e.g. "cafe" — see CATEGORY_COLORS
   city: string | null;
   country: string | null;
 };
 
-/** Canonical category slugs (no emoji). Unknown / null → DEFAULT_CATEGORY_COLOR. */
+/** Canonical category slugs (singular). Unknown / null → DEFAULT_CATEGORY_COLOR. */
 export const CATEGORY_COLORS: Record<string, { label: string; color: string }> =
   {
-    restaurants: { label: "Restaurants", color: "#E85D04" },
-    cafes: { label: "Cafés", color: "#6F4E37" },
-    bakeries: { label: "Bakeries", color: "#E9C46A" },
-    shops: { label: "Shops", color: "#0077B6" },
-    sites: { label: "Sites", color: "#2A9D8F" },
-    drinks: { label: "Drinks", color: "#9B5DE5" },
-    markets: { label: "Markets", color: "#F4A261" },
-    "sweet-treats": { label: "Sweet treats", color: "#F15BB5" },
+    restaurant: { label: "Restaurant", color: "#E85D04" },
+    cafe: { label: "Café", color: "#6F4E37" },
+    bakery: { label: "Bakery", color: "#E9C46A" },
+    shop: { label: "Shop", color: "#0077B6" },
+    site: { label: "Site", color: "#2A9D8F" },
+    drink: { label: "Drink", color: "#9B5DE5" },
+    market: { label: "Market", color: "#F4A261" },
+    "sweet-treat": { label: "Sweet treat", color: "#F15BB5" },
   };
 
 export const DEFAULT_CATEGORY_COLOR = "#6B6B6B";
 
-/** Map Takeout-style labels ("Cafés", "Bakery") onto canonical slugs. */
+/** Map labels / plurals / CSV tags onto canonical singular slugs. */
 const CATEGORY_ALIASES: Record<string, string> = {
-  restaurants: "restaurants",
-  restaurant: "restaurants",
-  cafes: "cafes",
-  cafe: "cafes",
-  cafés: "cafes",
-  café: "cafes",
-  bakeries: "bakeries",
-  bakery: "bakeries",
-  shops: "shops",
-  shop: "shops",
-  sites: "sites",
-  site: "sites",
-  drinks: "drinks",
-  drink: "drinks",
-  markets: "markets",
-  market: "markets",
-  "sweet-treats": "sweet-treats",
-  "sweet treats": "sweet-treats",
-  sweets: "sweet-treats",
+  restaurant: "restaurant",
+  restaurants: "restaurant",
+  cafe: "cafe",
+  cafes: "cafe",
+  cafés: "cafe",
+  café: "cafe",
+  bakery: "bakery",
+  bakeries: "bakery",
+  shop: "shop",
+  shops: "shop",
+  site: "site",
+  sites: "site",
+  drink: "drink",
+  drinks: "drink",
+  bar: "drink",
+  bars: "drink",
+  market: "market",
+  markets: "market",
+  "sweet-treat": "sweet-treat",
+  "sweet-treats": "sweet-treat",
+  "sweet treat": "sweet-treat",
+  "sweet treats": "sweet-treat",
+  sweets: "sweet-treat",
 };
 
 /**
- * Normalize a raw category string to a canonical slug.
- * Strips emoji, lowercases, and removes accents so "Cafés" → "cafes".
+ * Normalize a raw category string to a canonical singular slug.
+ * Strips emoji, lowercases, and removes accents so "Cafés" → "cafe".
  */
 export function normalizeCategory(
   raw: string | null | undefined
@@ -86,7 +90,7 @@ export const places: Place[] = [
     lat: 35.0116,
     lng: 135.7681,
     visited_date: null,
-    category: "sites",
+    category: "site",
     city: "Kyoto",
     country: "Japan",
   },
@@ -96,7 +100,7 @@ export const places: Place[] = [
     lat: 35.6895,
     lng: 139.6917,
     visited_date: null,
-    category: "shops",
+    category: "shop",
     city: "Tokyo",
     country: "Japan",
   },
@@ -106,7 +110,7 @@ export const places: Place[] = [
     lat: 52.52,
     lng: 13.405,
     visited_date: null,
-    category: "cafes",
+    category: "cafe",
     city: "Berlin",
     country: "Germany",
   },
@@ -116,7 +120,7 @@ export const places: Place[] = [
     lat: 52.3676,
     lng: 4.9041,
     visited_date: null,
-    category: "restaurants",
+    category: "restaurant",
     city: "Amsterdam",
     country: "Netherlands",
   },

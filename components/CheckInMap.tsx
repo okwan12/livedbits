@@ -23,6 +23,8 @@ import {
 const CLUSTER_LAYER_ID = "clusters";
 const CLUSTER_COUNT_LAYER_ID = "cluster-count";
 const UNCLUSTERED_LAYER_ID = "unclustered-point";
+// Invisible larger circle under the pin — easier to click without changing the look.
+const UNCLUSTERED_HIT_LAYER_ID = "unclustered-point-hit";
 const SOURCE_ID = "places";
 
 const PAPER = "#F6F3EC";
@@ -62,6 +64,19 @@ const clusterCountLayer: LayerProps = {
   },
 };
 
+// Larger transparent hit target so pins aren't pixel-perfect to click.
+const unclusteredHitLayer: LayerProps = {
+  id: UNCLUSTERED_HIT_LAYER_ID,
+  type: "circle",
+  source: SOURCE_ID,
+  filter: ["!", ["has", "point_count"]],
+  paint: {
+    "circle-color": "#000000",
+    "circle-opacity": 0,
+    "circle-radius": 16,
+  },
+};
+
 // A single (unclustered) place pin — colored by category.
 const unclusteredPointLayer: LayerProps = {
   id: UNCLUSTERED_LAYER_ID,
@@ -70,7 +85,7 @@ const unclusteredPointLayer: LayerProps = {
   filter: ["!", ["has", "point_count"]],
   paint: {
     "circle-color": categoryCircleColor,
-    "circle-radius": 7,
+    "circle-radius": 8,
     "circle-stroke-width": 2,
     "circle-stroke-color": PAPER,
   },
@@ -86,22 +101,32 @@ type PopupInfo = {
   country: string | null;
 };
 
-function formatMonthYear(isoDate: string): string {
-  const d = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return isoDate;
-  return d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+/** Keep only the 4-digit year from visited_date (e.g. 2026-01-01 → "2026"). */
+function formatYear(isoDate: string): string | null {
+  const match = String(isoDate).match(/^(\d{4})/);
+  return match ? match[1] : null;
+}
+
+function cleanProp(value: unknown): string | null {
+  if (value == null) return null;
+  const text = String(value).trim();
+  if (!text || text === "null" || text === "undefined") return null;
+  return text;
 }
 
 function popupLocation(city: string | null, country: string | null): string {
-  return [city, country].filter(Boolean).join(", ");
+  return [city, country]
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter(Boolean)
+    .join(", ");
 }
 
-function popupCaption(category: string | null, visitedDate: string | null): string {
-  const parts = [
-    category,
-    visitedDate ? formatMonthYear(visitedDate) : null,
-  ].filter(Boolean);
-  return parts.join(" • ");
+function popupCaption(
+  category: string | null,
+  visitedDate: string | null
+): string {
+  const year = visitedDate ? formatYear(visitedDate) : null;
+  return [category?.trim() || null, year].filter(Boolean).join(" · ");
 }
 
 export default function CheckInMap({
@@ -116,6 +141,7 @@ export default function CheckInMap({
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef>(null);
   const [popupInfo, setPopupInfo] = useState<PopupInfo | null>(null);
+  const [cursor, setCursor] = useState<"auto" | "pointer">("auto");
 
   const data = placesToGeoJSON(places);
 
@@ -136,6 +162,7 @@ export default function CheckInMap({
 
     // A cluster: smoothly zoom in until it breaks apart.
     if (feature.properties?.cluster) {
+      setPopupInfo(null);
       const clusterId = feature.properties.cluster_id as number;
       const map = mapRef.current;
       const source = map?.getSource(SOURCE_ID) as GeoJSONSource | undefined;
@@ -151,18 +178,21 @@ export default function CheckInMap({
       return;
     }
 
-    // An individual place: name / City, Country / category • Month Year.
+    // An individual place: name / City, Country / category · YYYY.
     const [longitude, latitude] = (feature.geometry as GeoJSON.Point).coordinates;
     setPopupInfo({
       longitude,
       latitude,
-      name: (feature.properties?.name as string) || "",
-      visitedDate: (feature.properties?.visited_date as string) || null,
-      category: (feature.properties?.category as string) || null,
-      city: (feature.properties?.city as string) || null,
-      country: (feature.properties?.country as string) || null,
+      name: cleanProp(feature.properties?.name) || "",
+      visitedDate: cleanProp(feature.properties?.visited_date),
+      category: cleanProp(feature.properties?.category),
+      city: cleanProp(feature.properties?.city),
+      country: cleanProp(feature.properties?.country),
     });
   }, []);
+
+  const handleMouseEnter = useCallback(() => setCursor("pointer"), []);
+  const handleMouseLeave = useCallback(() => setCursor("auto"), []);
 
   // No token → show a clear empty state rather than a silent blank.
   if (!token) {
@@ -189,8 +219,15 @@ export default function CheckInMap({
         mapboxAccessToken={token}
         initialViewState={initialViewState}
         mapStyle="mapbox://styles/mapbox/light-v11"
-        interactiveLayerIds={[CLUSTER_LAYER_ID, UNCLUSTERED_LAYER_ID]}
+        interactiveLayerIds={[
+          CLUSTER_LAYER_ID,
+          UNCLUSTERED_HIT_LAYER_ID,
+          UNCLUSTERED_LAYER_ID,
+        ]}
+        cursor={cursor}
         onClick={handleClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onLoad={handleMapLoad}
         onError={handleMapError}
         attributionControl={false}
@@ -206,6 +243,7 @@ export default function CheckInMap({
         >
           <Layer {...clusterLayer} />
           <Layer {...clusterCountLayer} />
+          <Layer {...unclusteredHitLayer} />
           <Layer {...unclusteredPointLayer} />
         </Source>
 
@@ -216,6 +254,7 @@ export default function CheckInMap({
             anchor="bottom"
             offset={12}
             closeButton={false}
+            closeOnClick={false}
             onClose={() => setPopupInfo(null)}
             className="font-body"
           >

@@ -7,7 +7,7 @@ create table if not exists places (
   lat double precision not null,
   lng double precision not null,
   visited_date date,
-  category text, -- slug: restaurants, cafes, bakeries, shops, sites, drinks, markets, sweet-treats
+  category text, -- slug: restaurant, cafe, bakery, shop, site, drink, market, sweet-treat
   city text,
   country text,
   created_at timestamptz default now()

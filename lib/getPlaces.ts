@@ -23,7 +23,7 @@ export async function getPlaces(): Promise<Place[]> {
 
   if (data.length === 0) return staticPlaces;
 
-  // Normalize "Cafés" / "Bakery" → cafes / bakeries for pin colors + popups.
+  // Normalize "Cafés" / "Bakeries" → cafe / bakery for pin colors + popups.
   return (data as Place[]).map((place) => ({
     ...place,
     category: normalizeCategory(place.category) ?? place.category,
