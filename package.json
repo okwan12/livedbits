@@ -9,7 +9,8 @@
     "lint": "next lint",
     "upload-photos": "node scripts/bulk-upload.js",
     "import-places": "node scripts/import-places.js",
-    "fixup-places-coords": "node scripts/fixup-places-coords.js"
+    "fixup-places-coords": "node scripts/fixup-places-coords.js",
+    "resolve-places-coords": "node scripts/resolve-places-coords.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -29,6 +30,7 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "autoprefixer": "10.4.19",
+    "playwright": "^1.62.1",
     "postcss": "8.4.38",
     "tailwindcss": "3.4.4",
     "typescript": "5.5.2"
