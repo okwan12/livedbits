@@ -19,7 +19,7 @@ export const CATEGORY_COLORS: Record<string, { label: string; color: string }> =
     site: { label: "Site", color: "#2A9D8F" },
     drink: { label: "Drink", color: "#9B5DE5" },
     market: { label: "Market", color: "#F4A261" },
-    "sweet-treat": { label: "Sweet treat", color: "#F15BB5" },
+    "sweet treat": { label: "Sweet treat", color: "#F15BB5" },
   };
 
 export const DEFAULT_CATEGORY_COLOR = "#6B6B6B";
@@ -44,11 +44,11 @@ const CATEGORY_ALIASES: Record<string, string> = {
   bars: "drink",
   market: "market",
   markets: "market",
-  "sweet-treat": "sweet-treat",
-  "sweet-treats": "sweet-treat",
-  "sweet treat": "sweet-treat",
-  "sweet treats": "sweet-treat",
-  sweets: "sweet-treat",
+  "sweet treat": "sweet treat",
+  "sweet treats": "sweet treat",
+  "sweet-treat": "sweet treat",
+  "sweet-treats": "sweet treat",
+  sweets: "sweet treat",
 };
 
 /**

@@ -48,8 +48,8 @@ const TAG_TO_CATEGORY = {
   "🌻 Market": "market",
   "🌻 markets": "market",
   "🌻 market": "market",
-  "🍦 sweet treat": "sweet-treat",
-  "🍦 sweet treats": "sweet-treat",
+  "🍦 sweet treat": "sweet treat",
+  "🍦 sweet treats": "sweet treat",
 };
 
 // Text after (possibly garbled) emoji → singular slug.
@@ -73,10 +73,10 @@ const TAG_TEXT_TO_CATEGORY = {
   bars: "drink",
   market: "market",
   markets: "market",
-  "sweet treat": "sweet-treat",
-  "sweet treats": "sweet-treat",
-  "sweet-treat": "sweet-treat",
-  "sweet-treats": "sweet-treat",
+  "sweet treat": "sweet treat",
+  "sweet treats": "sweet treat",
+  "sweet-treat": "sweet treat",
+  "sweet-treats": "sweet treat",
 };
 
 const DEFAULT_NEAR = "";

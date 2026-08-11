@@ -7,4 +7,4 @@ update places set category = 'shop' where lower(category) in ('shops', 'shop');
 update places set category = 'site' where lower(category) in ('sites', 'site');
 update places set category = 'drink' where lower(category) in ('drinks', 'drink', 'bar', 'bars');
 update places set category = 'market' where lower(category) in ('markets', 'market');
-update places set category = 'sweet-treat' where lower(category) in ('sweet-treats', 'sweet-treat', 'sweet treats', 'sweet treat', 'sweets');
+update places set category = 'sweet treat' where lower(category) in ('sweet-treats', 'sweet-treat', 'sweet treats', 'sweet treat', 'sweets');
