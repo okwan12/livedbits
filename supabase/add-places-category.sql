@@ -1,6 +1,6 @@
 -- Add nullable category slug for place pins (restaurants, cafes, etc.).
--- Canonical values: restaurants, cafes, bakeries, shops, sites, drinks,
--- markets, sweet treat. Null/unknown → neutral gray on the map.
+-- Canonical values: restaurant, cafe, bakery, shop, site, bar,
+-- market, sweet treat.
 
 alter table places
   add column if not exists category text;

@@ -9,7 +9,7 @@ export type Place = {
   country: string | null;
 };
 
-/** Canonical category slugs (singular). Unknown / null → DEFAULT_CATEGORY_COLOR. */
+/** Canonical category slugs (singular). */
 export const CATEGORY_COLORS: Record<string, { label: string; color: string }> =
   {
     restaurant: { label: "Restaurant", color: "#E85D04" },
@@ -17,12 +17,10 @@ export const CATEGORY_COLORS: Record<string, { label: string; color: string }> =
     bakery: { label: "Bakery", color: "#E9C46A" },
     shop: { label: "Shop", color: "#0077B6" },
     site: { label: "Site", color: "#2A9D8F" },
-    drink: { label: "Drink", color: "#9B5DE5" },
+    bar: { label: "Bar", color: "#9B5DE5" },
     market: { label: "Market", color: "#F4A261" },
     "sweet treat": { label: "Sweet treat", color: "#F15BB5" },
   };
-
-export const DEFAULT_CATEGORY_COLOR = "#6B6B6B";
 
 /** Map labels / plurals / CSV tags onto canonical singular slugs. */
 const CATEGORY_ALIASES: Record<string, string> = {
@@ -38,10 +36,10 @@ const CATEGORY_ALIASES: Record<string, string> = {
   shops: "shop",
   site: "site",
   sites: "site",
-  drink: "drink",
-  drinks: "drink",
-  bar: "drink",
-  bars: "drink",
+  bar: "bar",
+  bars: "bar",
+  drink: "bar",
+  drinks: "bar",
   market: "market",
   markets: "market",
   "sweet treat": "sweet treat",
@@ -70,14 +68,14 @@ export function normalizeCategory(
 }
 
 export function categoryColor(category: string | null | undefined): string {
-  const slug = normalizeCategory(category) ?? category;
-  if (!slug) return DEFAULT_CATEGORY_COLOR;
-  return CATEGORY_COLORS[slug]?.color ?? DEFAULT_CATEGORY_COLOR;
+  const slug = normalizeCategory(category);
+  if (!slug) return CATEGORY_COLORS.site.color;
+  return CATEGORY_COLORS[slug]?.color ?? CATEGORY_COLORS.site.color;
 }
 
 export function categoryLabel(category: string | null | undefined): string {
   const slug = normalizeCategory(category);
-  if (!slug) return category ?? "Other";
+  if (!slug) return "";
   return CATEGORY_COLORS[slug]?.label ?? slug;
 }
 
@@ -130,7 +128,7 @@ export const places: Place[] = [
     lat: 37.7749,
     lng: -122.4194,
     visited_date: null,
-    category: null,
+    category: "site",
     city: "San Francisco",
     country: "USA",
   },
@@ -172,7 +170,7 @@ export function placesToGeoJSON(
   };
 }
 
-/** Mapbox paint expression: match category → color, else default gray. */
+/** Mapbox paint expression: match category → color (fallback: site). */
 export function categoryColorMatchExpression(): unknown[] {
   const expr: unknown[] = [
     "match",
@@ -181,6 +179,6 @@ export function categoryColorMatchExpression(): unknown[] {
   for (const [slug, { color }] of Object.entries(CATEGORY_COLORS)) {
     expr.push(slug, color);
   }
-  expr.push(DEFAULT_CATEGORY_COLOR);
+  expr.push(CATEGORY_COLORS.site.color);
   return expr;
 }
