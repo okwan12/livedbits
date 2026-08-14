@@ -19,21 +19,38 @@ create policy "Public places are viewable by everyone"
 on places for select
 using (true);
 
+create table if not exists albums (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  cover_image text not null,
+  sort_order integer not null default 0,
+  created_at timestamptz default now()
+);
+
+alter table albums enable row level security;
+
+create policy "Public albums are viewable by everyone"
+on albums for select
+using (true);
+
 create table if not exists photos (
   id text primary key,
   src text not null,
-  alt text not null,
-  city text not null,
-  country text not null,
-  date date not null,
-  roll text not null,
-  frame integer not null,
+  alt text,
+  city text,
+  country text,
+  date date,
+  roll text,
+  frame integer,
   featured boolean default false,
   place_id uuid references places(id) on delete set null,
+  album_id uuid references albums(id) on delete set null,
   created_at timestamptz default now()
 );
 
 create index if not exists photos_place_id_idx on photos(place_id);
+create index if not exists photos_album_id_idx on photos(album_id);
 
 -- Allow anyone to read photos (this is a public portfolio, not private data).
 -- Writes still require your service role key, which stays server-side only.

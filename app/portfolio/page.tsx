@@ -27,7 +27,7 @@ export default async function PortfolioPage() {
             <div className="relative w-full aspect-[3/2] bg-ink">
               <Image
                 src={photo.src}
-                alt={photo.alt}
+                alt={photo.alt ?? ""}
                 fill
                 sizes="(max-width: 768px) 100vw, 900px"
                 priority={i === 0}
@@ -35,9 +35,14 @@ export default async function PortfolioPage() {
               />
             </div>
             <figcaption className="mt-4 flex justify-between items-baseline font-mono text-xs tracking-widest2 uppercase text-ink/50">
-              <span>{photo.alt}</span>
+              <span>{photo.alt ?? ""}</span>
               <span>
-                {photo.city}, {photo.country} — {photo.date}
+                {[
+                  [photo.city, photo.country].filter(Boolean).join(", "),
+                  photo.date,
+                ]
+                  .filter(Boolean)
+                  .join(" — ")}
               </span>
             </figcaption>
           </figure>

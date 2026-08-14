@@ -4,33 +4,45 @@ import { useState } from "react";
 import Image from "next/image";
 import type { Photo } from "@/data/photos";
 
+function locationLabel(photo: Photo): string | null {
+  const parts = [photo.city, photo.country].filter(Boolean);
+  return parts.length ? parts.join(", ") : null;
+}
+
 export default function PhotoGrid({ photos }: { photos: Photo[] }) {
   const [active, setActive] = useState<Photo | null>(null);
 
   return (
     <>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {photos.map((photo) => (
-          <button
-            key={photo.id}
-            onClick={() => setActive(photo)}
-            className="group relative aspect-[4/5] bg-ink/5 overflow-hidden focus-ring text-left"
-            aria-label={`Open photo: ${photo.alt}, ${photo.city}`}
-          >
-            <Image
-              src={photo.src}
-              alt={photo.alt}
-              fill
-              sizes="(max-width: 768px) 50vw, 33vw"
-              className="object-cover transition duration-500 group-hover:scale-[1.02]"
-            />
-            <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-t from-ink/70 to-transparent">
-              <p className="font-body text-sm text-paper">
-                {photo.city}, {photo.country}
-              </p>
-            </div>
-          </button>
-        ))}
+        {photos.map((photo) => {
+          const location = locationLabel(photo);
+          return (
+            <button
+              key={photo.id}
+              onClick={() => setActive(photo)}
+              className="group relative aspect-[4/5] bg-ink/5 overflow-hidden focus-ring text-left"
+              aria-label={
+                location
+                  ? `Open photo: ${photo.alt ?? "Photo"}, ${location}`
+                  : `Open photo: ${photo.alt ?? "Photo"}`
+              }
+            >
+              <Image
+                src={photo.src}
+                alt={photo.alt ?? ""}
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover transition duration-500 group-hover:scale-[1.02]"
+              />
+              {location && (
+                <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-t from-ink/70 to-transparent">
+                  <p className="font-body text-sm text-paper">{location}</p>
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {active && (
@@ -54,17 +66,15 @@ export default function PhotoGrid({ photos }: { photos: Photo[] }) {
             <div className="relative w-full aspect-[4/5] md:aspect-[3/2]">
               <Image
                 src={active.src}
-                alt={active.alt}
+                alt={active.alt ?? ""}
                 fill
                 sizes="90vw"
                 className="object-contain"
               />
             </div>
             <figcaption className="mt-4 font-body text-sm text-paper/70 flex flex-wrap gap-x-4 gap-y-1">
-              <span>
-                {active.city}, {active.country}
-              </span>
-              <span>{active.date}</span>
+              {locationLabel(active) && <span>{locationLabel(active)}</span>}
+              {active.date && <span>{active.date}</span>}
             </figcaption>
           </figure>
         </div>

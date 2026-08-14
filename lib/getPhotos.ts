@@ -7,7 +7,7 @@ export async function getPhotos(): Promise<Photo[]> {
   const { data, error } = await supabase
     .from("photos")
     .select(
-      "id, src, alt, city, country, date, roll, frame, featured, place_id"
+      "id, src, alt, city, country, date, roll, frame, featured, place_id, album_id"
     )
     .order("date", { ascending: false });
 

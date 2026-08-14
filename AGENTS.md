@@ -10,7 +10,8 @@ lots of whitespace, photography as the hero, minimal UI. Match that restraint.
 
 ## Stack
 - Next.js (App Router) + TypeScript
-- Supabase — stores photos (`photos` table) and map locations (`places` table)
+- Supabase — stores photos (`photos` table), photo albums (`albums` table;
+  photos optionally link via `album_id`), and map locations (`places` table)
 - Mapbox — clustered map of places from the `places` table
 - Tailwind CSS for styling
 - Deploys to Vercel (auto-deploy on push to main)
@@ -30,7 +31,7 @@ lots of whitespace, photography as the hero, minimal UI. Match that restraint.
 
 ## Sections
 - Home / hero — name, one-line identity, sets the tone
-- Photography — the grid, pulling from Supabase (not hardcoded placeholder arrays)
+- Photography — album covers on Through My Eyes; homepage still shows a photo grid from Supabase
 - Interests — short, personal blurbs (travel, photography, music/Afrobeats)
 - Places — Mapbox map of saved locations
 - Footer — professional links (LinkedIn, Instagram, email, etc.) as the "connections" board

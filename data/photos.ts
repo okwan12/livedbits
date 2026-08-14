@@ -1,14 +1,15 @@
 export type Photo = {
   id: string;
   src: string;
-  alt: string;
-  city: string;
-  country: string;
-  date: string; // YYYY-MM-DD
-  roll: string; // groups photos into a "contact sheet" roll, e.g. a trip
-  frame: number; // position within the roll
+  alt: string | null;
+  city: string | null;
+  country: string | null;
+  date: string | null; // YYYY-MM-DD
+  roll: string | null; // optional trip/roll grouping
+  frame: number | null; // optional position within the roll
   featured?: boolean; // shows up on homepage / portfolio when true
   place_id?: string | null; // optional link to places.id
+  album_id?: string | null; // optional link to albums.id
 };
 
 // Replace src with your own images once you've dropped them in /public/photos
@@ -24,6 +25,7 @@ export const photos: Photo[] = [
     roll: "kyoto-spring",
     frame: 1,
     featured: true,
+    album_id: "a1",
   },
   {
     id: "p2",
@@ -34,6 +36,7 @@ export const photos: Photo[] = [
     date: "2026-03-15",
     roll: "kyoto-spring",
     frame: 2,
+    album_id: "a1",
   },
   {
     id: "p3",
@@ -45,6 +48,7 @@ export const photos: Photo[] = [
     roll: "berlin-fall",
     frame: 1,
     featured: true,
+    album_id: "a2",
   },
   {
     id: "p4",
@@ -66,6 +70,7 @@ export const photos: Photo[] = [
     roll: "sf-goodbye",
     frame: 1,
     featured: true,
+    album_id: "a3",
   },
   {
     id: "p6",
@@ -76,5 +81,6 @@ export const photos: Photo[] = [
     date: "2026-03-18",
     roll: "kyoto-spring",
     frame: 3,
+    album_id: "a1",
   },
 ];
