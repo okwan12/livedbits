@@ -13,7 +13,7 @@ export default async function JournalEntryPage({
   const { meta, html } = await getJournalEntry(params.slug);
 
   return (
-    <article className="px-6 md:px-12 py-12 max-w-2xl mx-auto">
+    <article className="glass-panel mx-auto max-w-2xl px-6 py-12 md:px-12">
       <p className="font-mono text-[11px] tracking-widest2 uppercase text-ink/50">
         {meta.city}, {meta.country} — {meta.date}
       </p>

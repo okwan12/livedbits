@@ -1,6 +1,6 @@
 export default function AboutPage() {
   return (
-    <div className="px-6 md:px-12 py-12 max-w-2xl">
+    <div className="glass-panel max-w-2xl px-6 py-12 md:px-12">
       <p className="font-mono text-xs tracking-widest2 uppercase text-rust mb-3">
       
       </p>

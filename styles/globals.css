@@ -25,6 +25,40 @@ body {
   outline-offset: 3px;
 }
 
+/* Frosted panels over the fixed dot field. Raise --glass-bg if text contrast dips. */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.65);
+}
+
+.glass-panel {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Labels sitting on the dot field — no box, just darker type + a white halo. */
+.label-on-dots {
+  color: #3a3a3a;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 4px rgba(255, 255, 255, 0.9);
+}
+
+/* Quote on the dots: no card. Halo first; a borderless radial wash if needed. */
+.quote-on-dots {
+  color: #1f1f1f;
+  text-shadow:
+    0 0 20px rgba(255, 255, 255, 1),
+    0 0 12px rgba(255, 255, 255, 0.95),
+    0 0 4px rgba(255, 255, 255, 0.9);
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0) 75%
+  );
+}
+
 /* Mapbox GL: canvas is position:absolute, so the container needs an
    explicit size + positioning context or tiles never paint (logo only). */
 .mapboxgl-map,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import Nav from "@/components/Nav";
+import DotField from "@/components/DotField";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,6 +22,8 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans">
+        <DotField className="fixed inset-0 z-0 h-full w-full" />
+        <div className="relative z-10">
         <Nav />
         <main>{children}</main>
         <footer className="border-t border-ink/10 mt-24">
@@ -55,6 +58,7 @@ export default function RootLayout({
             </nav>
           </div>
         </footer>
+        </div>
       </body>
     </html>
   );

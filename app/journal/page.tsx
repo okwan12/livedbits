@@ -18,7 +18,7 @@ export default function JournalPage() {
           <Link
             key={entry.slug}
             href={`/journal/${entry.slug}`}
-            className="group block focus-ring"
+            className="group block focus-ring glass-panel p-5"
           >
             <div className="relative aspect-[3/2] bg-ink overflow-hidden mb-3">
               <Image
