@@ -16,6 +16,8 @@
 //   --limit <n>    Only process the first n titled rows.
 //   --dry-run      Log results; do not write to Supabase.
 //   --near <region>  Geocode mode only — bias string (optional).
+//   --city <name>    Coords mode — city written on insert/update (optional).
+//   --country <name> Coords mode — country written on insert/update (optional).
 //   --delay <ms>   Pause between rows (default 250; geocode mode).
 //
 // Needs in .env.local:
@@ -103,6 +105,8 @@ function parseArgs(argv) {
     coords: false,
     near: DEFAULT_NEAR,
     delay: DEFAULT_DELAY_MS,
+    city: null,
+    country: null,
   };
 
   for (let i = 2; i < argv.length; i++) {
@@ -117,6 +121,10 @@ function parseArgs(argv) {
       opts.limit = Number(argv[++i]);
     } else if (arg === "--near") {
       opts.near = argv[++i];
+    } else if (arg === "--city") {
+      opts.city = argv[++i];
+    } else if (arg === "--country") {
+      opts.country = argv[++i];
     } else if (arg === "--delay") {
       opts.delay = Number(argv[++i]);
     } else {
@@ -235,6 +243,15 @@ function coordsFromMapsUrl(url) {
 
 function parseCoords(row) {
   const fromUrl = coordsFromMapsUrl(cell(row, "URL", "url"));
+  if (fromUrl && fromUrl.source === "url-marker") return fromUrl;
+
+  // Extra CSV columns sometimes hold the expanded Maps URL (Berlin export).
+  for (const value of Object.values(row)) {
+    if (typeof value !== "string" || !value.includes("google.com/maps")) continue;
+    const fromCell = coordsFromMapsUrl(value);
+    if (fromCell?.source === "url-marker") return fromCell;
+  }
+
   if (fromUrl) return fromUrl;
 
   const latRaw = cell(row, "Latitude", "latitude", "lat");
@@ -491,6 +508,8 @@ async function main() {
       let coordSource = null;
       if (opts.coords) {
         ({ lat, lng, source: coordSource } = parseCoords(row));
+        city = opts.city || null;
+        country = opts.country || null;
       } else {
         const geo = await geocodePlace(name, {
           token: mapboxToken,
@@ -519,6 +538,8 @@ async function main() {
       } else if (existingId) {
         const payload = { lat, lng, category };
         if (visited_date) payload.visited_date = visited_date;
+        if (city) payload.city = city;
+        if (country) payload.country = country;
         const { error } = await supabase
           .from("places")
           .update(payload)

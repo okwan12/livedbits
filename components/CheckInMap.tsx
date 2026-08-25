@@ -133,7 +133,7 @@ export default function CheckInMap({
   // Avoid overflow-hidden here — it can blank the Mapbox WebGL canvas
   // in some browsers while leaving the HTML logo visible.
   places,
-  className = "h-64 md:h-80 w-full rounded-2xl",
+  className = "h-64 md:h-80 w-full rounded-2xl bg-white",
 }: {
   places: Place[];
   className?: string;
@@ -146,7 +146,21 @@ export default function CheckInMap({
   const data = placesToGeoJSON(places);
 
   const handleMapLoad = useCallback(() => {
-    mapRef.current?.getMap()?.resize();
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    map.resize();
+    map.setProjection("globe");
+    map.jumpTo({
+      center: [initialViewState.longitude, initialViewState.latitude],
+      zoom: initialViewState.zoom,
+    });
+    map.setFog({
+      color: "#ffffff",
+      "high-color": "#d7e3f2",
+      "horizon-blend": 0.06,
+      "space-color": "#ffffff",
+      "star-intensity": 0,
+    });
   }, []);
 
   const handleMapError = useCallback((event: { error?: Error }) => {
@@ -218,6 +232,14 @@ export default function CheckInMap({
         ref={mapRef}
         mapboxAccessToken={token}
         initialViewState={initialViewState}
+        projection={{ name: "globe" }}
+        fog={{
+          color: "#ffffff",
+          "high-color": "#d7e3f2",
+          "horizon-blend": 0.06,
+          "space-color": "#ffffff",
+          "star-intensity": 0,
+        }}
         mapStyle="mapbox://styles/mapbox/light-v11"
         interactiveLayerIds={[
           CLUSTER_LAYER_ID,

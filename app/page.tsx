@@ -9,7 +9,7 @@ import { countriesVisited } from "@/data/countries";
 const CheckInMap = dynamic(() => import("@/components/CheckInMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-72 md:h-[440px] w-full rounded-2xl bg-ink/[0.03]" />
+    <div className="h-72 md:h-[440px] w-full rounded-2xl bg-white" />
   ),
 });
 
@@ -47,7 +47,7 @@ export default async function HomePage() {
             </h2>
             <CheckInMap
               places={places}
-              className="h-72 md:h-[440px] w-full rounded-2xl"
+              className="h-72 md:h-[440px] w-full rounded-2xl bg-white"
             />
           </div>
 

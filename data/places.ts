@@ -134,12 +134,11 @@ export const places: Place[] = [
   },
 ];
 
-// Where the map first looks — Bay Area so your seeded places are visible.
-// Widen (lower zoom) once you have pins worldwide.
+// Pulled back so the globe reads as a sphere, with worldwide pins visible.
 export const initialViewState = {
-  longitude: -122.4,
-  latitude: 37.78,
-  zoom: 10,
+  longitude: 10,
+  latitude: 20,
+  zoom: 1.05,
 };
 
 // Converts places into a GeoJSON FeatureCollection for Mapbox clustering.
