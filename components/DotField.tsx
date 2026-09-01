@@ -3,22 +3,22 @@
  * Tweak DOTS below; `intensity` is the main readability dial (0–1).
  */
 export const DOTS = {
-  intensity: 0.42,
+  intensity: 0.72,
   count: 120,
   minR: 0.45,
   maxR: 2.2,
   seed: 1201,
   colors: [
-    "#6E2E18",
-    "#2F3A2C",
-    "#6B4E1E",
-    "#3A4638",
-    "#8A3200",
-    "#14524C",
-    "#4A2480",
-    "#8A1458",
-    "#003A66",
-    "#8A4A18",
+    "#E11D48",
+    "#2563EB",
+    "#16A34A",
+    "#F59E0B",
+    "#7C3AED",
+    "#06B6D4",
+    "#EA580C",
+    "#DB2777",
+    "#0EA5E9",
+    "#65A30D",
   ],
 };
 

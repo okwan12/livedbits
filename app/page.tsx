@@ -51,7 +51,7 @@ export default async function HomePage() {
                       <p className="text-xs uppercase tracking-widest2 text-ink/40 mb-2">
                         Based in
                       </p>
-                      <p className="text-sm text-ink/70">New Jersey</p>
+                      <p className="text-sm text-ink/70">Boston</p>
                     </div>
 
                     {songs.length > 0 && (
